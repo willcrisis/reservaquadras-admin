@@ -1,19 +1,15 @@
-import UsersCollection from '@/db/user';
-import { useFirebase } from '@/providers/FirebaseProvider';
+import NavBar from '@/components/nav-bar';
+import { useAuth } from '@/hooks/useAuth';
 import { Button, Flex } from '@chakra-ui/react';
-import { useEffect } from 'react';
 
 const Home = () => {
-  const { logout } = useFirebase();
-  useEffect(() => {
-    UsersCollection.list().then((users) => {
-      console.log(users);
-    });
-  }, []);
+  const { permissions } = useAuth();
   return (
-    <Flex gap={4} direction="column" alignItems="center" justifyContent="center" h="100vh" px="8">
-      <h1>Home</h1>
-      <Button onClick={logout}>Logout</Button>
+    <Flex gap={4} direction="column">
+      <NavBar title="Agenda">
+        {permissions.manage_schedules && <Button size="sm">Liberar Quadras</Button>}
+        {permissions.manage_users && <Button size="sm">Gerenciar Usuários</Button>}
+      </NavBar>
     </Flex>
   );
 };

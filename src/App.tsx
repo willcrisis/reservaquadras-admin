@@ -1,10 +1,11 @@
 import { Toaster } from '@/components/ui/toaster';
-import FirebaseProvider, { useFirebase } from '@/providers/FirebaseProvider';
+import { useAuth } from '@/hooks/useAuth';
+import AuthProvider from '@/providers/AuthProvider';
 import Home from '@/routes';
 import Login from '@/routes/login';
 
 function RoutedApp() {
-  const { user, role, loading, authing } = useFirebase();
+  const { user, loading, authing } = useAuth();
 
   if (loading || authing) {
     return <div>Loading...</div>;
@@ -20,9 +21,9 @@ function RoutedApp() {
 
 function App() {
   return (
-    <FirebaseProvider>
+    <AuthProvider>
       <RoutedApp />
-    </FirebaseProvider>
+    </AuthProvider>
   );
 }
 

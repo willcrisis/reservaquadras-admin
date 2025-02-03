@@ -2,7 +2,7 @@ import { Field } from '@/components/ui/field';
 import Form from '@/components/ui/form';
 import { FormRow } from '@/components/ui/form-row';
 import { toaster } from '@/components/ui/toaster';
-import { useFirebase } from '@/providers/FirebaseProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { Button, Flex, Input, VStack } from '@chakra-ui/react';
 import { Controller, useForm } from 'react-hook-form';
 
@@ -11,7 +11,7 @@ type FormData = {
 };
 
 const Login = () => {
-  const { authenticate } = useFirebase();
+  const { authenticate } = useAuth();
 
   const { control, handleSubmit } = useForm<FormData>({
     defaultValues: { email: localStorage.getItem('emailForSignIn') || '' },
