@@ -3,10 +3,10 @@ import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 
 export const createUser = onRequest(async (request, response) => {
-  const { name, phoneNumber, email, roles } = request.body.data;
+  const { name, phoneNumber, email, roles, countryCode } = request.body.data;
   const user = await getAuth().createUser({
     displayName: name,
-    ...(phoneNumber ? { phoneNumber } : {}),
+    ...(phoneNumber && countryCode ? { phoneNumber: `+${countryCode}${phoneNumber}` } : {}),
     ...(email ? { email } : {}),
   });
   await getFirestore().collection('users').doc(user.uid).set({
@@ -14,6 +14,7 @@ export const createUser = onRequest(async (request, response) => {
     email,
     phoneNumber,
     roles,
-  })
-  response.json({ data: {id: user.uid} });
+    countryCode,
+  });
+  response.json({ data: { id: user.uid } });
 });

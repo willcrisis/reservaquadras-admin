@@ -11,7 +11,7 @@ const CreateUserDrawerInner = ({ store }: { store: UseDialogReturn }) => {
   const onSubmit = async (data: UserFormData) => {
     try {
       setLoading(true);
-      const { data: result } = await createUser(data);
+      const { data: result } = await createUser({ ...data, countryCode: data.countryCode[0] });
       toaster.success({
         title: 'Usuário adicionado',
         description: `ID do usuário: ${result.id}`,

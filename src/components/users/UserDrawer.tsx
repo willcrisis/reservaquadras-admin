@@ -1,3 +1,4 @@
+import CountryCodeSelect from '@/components/CountryCodeSelect';
 import {
   DrawerBackdrop,
   DrawerBody,
@@ -21,6 +22,7 @@ export type UserFormData = {
   name: string;
   email: string;
   phoneNumber: string;
+  countryCode: string[];
   roles: string[];
 };
 
@@ -39,11 +41,6 @@ const UserDrawer = ({ user, isLoading, onSubmit }: UserDrawerProps) => {
     roles: { list: roles },
   } = useGlobalStore();
 
-  const rolesOptions = useMemo(
-    () => createListCollection({ items: roles.map((role) => ({ label: role.name, value: role.id })) }),
-    [roles],
-  );
-
   const {
     control,
     watch,
@@ -54,6 +51,7 @@ const UserDrawer = ({ user, isLoading, onSubmit }: UserDrawerProps) => {
       name: user?.name || '',
       email: user?.email || '',
       phoneNumber: user?.phoneNumber || '',
+      countryCode: user?.countryCode ? [user.countryCode] : ['55'],
       roles: user?.roles || [],
     },
   });
@@ -66,8 +64,23 @@ const UserDrawer = ({ user, isLoading, onSubmit }: UserDrawerProps) => {
       email: { required: ['sudo', 'admin'].some((role) => values.roles.includes(role)) },
       phoneNumber: { required: ['player', 'ranking'].some((role) => values.roles.includes(role)) },
       roles: { required: true },
+      sudo: { disabled: values.roles.includes('admin') },
+      admin: { disabled: values.roles.includes('sudo') },
     }),
     [values.roles],
+  );
+
+  const rolesOptions = useMemo(
+    () =>
+      createListCollection({
+        items: roles.map((role) => ({
+          label: role.name,
+          value: role.id,
+          disabled:
+            role.id === 'sudo' ? validation.sudo?.disabled : role.id === 'admin' ? validation.admin?.disabled : false,
+        })),
+      }),
+    [roles, validation],
   );
 
   const contentRef = useRef<HTMLDivElement>(null);
@@ -93,7 +106,7 @@ const UserDrawer = ({ user, isLoading, onSubmit }: UserDrawerProps) => {
                   render={({ field }) => <Input {...field} />}
                 />
               </Field>
-              <Field label="Cargos" required={validation.roles.required}>
+              <Field label="Permissões" required={validation.roles.required}>
                 <Controller
                   control={control}
                   name="roles"
@@ -137,18 +150,32 @@ const UserDrawer = ({ user, isLoading, onSubmit }: UserDrawerProps) => {
                 </Field>
               )}
               {['player', 'ranking'].some((role) => values.roles.includes(role)) && (
-                <Field
-                  label="Telefone"
-                  invalid={!!errors.phoneNumber}
-                  required={['player', 'ranking'].some((role) => values.roles.includes(role))}
-                >
-                  <Controller
-                    control={control}
-                    name="phoneNumber"
-                    rules={{ required: ['player', 'ranking'].some((role) => values.roles.includes(role)) }}
-                    render={({ field }) => <Input {...field} />}
-                  />
-                </Field>
+                <FormRow>
+                  <Field
+                    label="País"
+                    invalid={!!errors.phoneNumber}
+                    required={['player', 'ranking'].some((role) => values.roles.includes(role))}
+                  >
+                    <Controller
+                      control={control}
+                      name="countryCode"
+                      rules={{ required: validation.phoneNumber.required }}
+                      render={({ field }) => <CountryCodeSelect field={field} portalRef={contentRef} />}
+                    />
+                  </Field>
+                  <Field
+                    label="Telefone"
+                    invalid={!!errors.phoneNumber}
+                    required={['player', 'ranking'].some((role) => values.roles.includes(role))}
+                  >
+                    <Controller
+                      control={control}
+                      name="phoneNumber"
+                      rules={{ required: validation.phoneNumber.required }}
+                      render={({ field }) => <Input {...field} type="number" maxLength={15} />}
+                    />
+                  </Field>
+                </FormRow>
               )}
             </FormRow>
             <FormRow justifyContent="center">

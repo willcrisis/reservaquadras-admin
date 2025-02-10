@@ -8,6 +8,7 @@ export interface User {
   name: string;
   email: string;
   phoneNumber: string;
+  countryCode: string;
   roles: string[];
 }
 

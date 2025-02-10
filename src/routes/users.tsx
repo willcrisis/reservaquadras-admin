@@ -49,7 +49,9 @@ const Users = () => {
             <Table.Row key={item.id}>
               <Table.Cell>{item.name}</Table.Cell>
               <Table.Cell>{item.email}</Table.Cell>
-              <Table.Cell>{item.phoneNumber}</Table.Cell>
+              <Table.Cell>
+                +{item.countryCode} {item.phoneNumber}
+              </Table.Cell>
               <Table.Cell>{item.roles?.map((role) => roles.find((r) => r.id === role)?.name).join(', ')}</Table.Cell>
               <Table.Cell display="flex" gap={2} justifyContent="flex-end">
                 <IconButton aria-label="Editar" variant="outline" size="sm" title="Editar">

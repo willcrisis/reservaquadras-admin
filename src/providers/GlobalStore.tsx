@@ -12,7 +12,7 @@ const withGlobalStore = (WrappedComponent: (props: any) => React.JSX.Element) =>
   const providerValue = useMemo(
     () => ({
       users: { list: users, loading: loadingUsers, error: errorUsers },
-      roles: { list: roles, loading: loadingRoles, error: errorRoles },
+      roles: { list: roles?.sort((a, b) => a.order - b.order) || [], loading: loadingRoles, error: errorRoles },
     }),
     [errorUsers, errorRoles, loadingUsers, loadingRoles, roles, users],
   );
