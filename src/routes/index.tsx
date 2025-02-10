@@ -1,17 +1,20 @@
 import NavBar from '@/components/nav-bar';
-import { useAuth } from '@/hooks/useAuth';
-import { Button, Flex } from '@chakra-ui/react';
+import withGlobalStore from '@/providers/GlobalStore';
+import Home from '@/routes/home';
+import Users from '@/routes/users';
+import { Flex } from '@chakra-ui/react';
+import { Route, Routes } from 'react-router';
 
-const Home = () => {
-  const { permissions } = useAuth();
-  return (
-    <Flex gap={4} direction="column">
-      <NavBar title="Agenda">
-        {permissions.manage_schedules && <Button size="sm">Liberar Quadras</Button>}
-        {permissions.manage_users && <Button size="sm">Gerenciar Usuários</Button>}
-      </NavBar>
+const Router = () => (
+  <Flex gap={4} direction="column">
+    <NavBar />
+    <Flex px="4">
+      <Routes>
+        <Route index element={<Home />} />
+        <Route path="users" element={<Users />} />
+      </Routes>
     </Flex>
-  );
-};
+  </Flex>
+);
 
-export default Home;
+export default withGlobalStore(Router);

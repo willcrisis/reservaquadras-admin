@@ -1,2 +1,2 @@
 watch: npm run build:watch
-emulator: firebase emulators:start
+emulator: firebase emulators:start --import ./.firebase-data --export-on-exit

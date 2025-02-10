@@ -13,10 +13,15 @@ import * as logger from 'firebase-functions/logger';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 
+import { createUser as createUserFunction } from './users';
+
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
 
 initializeApp();
+getFirestore().settings({
+  ignoreUndefinedProperties: true,
+});
 
 export const addMessage = onRequest(async (request, response) => {
   const { text } = request.query;
@@ -30,3 +35,5 @@ export const makeUppercase = onDocumentCreated('/messages/{documentId}', async (
   const uppercase = text.toUpperCase();
   return event.data?.ref.set({ uppercase: uppercase }, { merge: true });
 });
+
+export const createUser = createUserFunction;

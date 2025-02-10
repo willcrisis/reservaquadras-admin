@@ -1,4 +1,3 @@
-import { Role } from '@/db/role';
 import { User } from 'firebase/auth';
 import { createContext, useContext } from 'react';
 
@@ -9,7 +8,7 @@ export type Permissions = {
 
 type AuthContextValue = {
   user: User | null;
-  role: Role | null;
+  roles: string[];
   permissions: Permissions;
   loading: boolean;
   authing: boolean;

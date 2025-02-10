@@ -1,19 +1,31 @@
 import UserMenu from '@/components/user-menu';
-import { Heading, HStack } from '@chakra-ui/react';
-import { PropsWithChildren } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { Heading, HStack, Link } from '@chakra-ui/react';
+import { NavLink } from 'react-router';
 
-type NavBarProps = {
-  title?: string;
+const NavBar = () => {
+  const { permissions } = useAuth();
+
+  return (
+    <nav>
+      <HStack px="4" py="2" borderBottomWidth="1px" borderColor="gray.200">
+        <Heading>Reserva de Quadras</Heading>
+        <HStack flex="1" justifyContent="flex-end" alignItems="center" gap="16">
+          {permissions.manage_schedules && (
+            <Link asChild>
+              <NavLink to="/">Calendário</NavLink>
+            </Link>
+          )}
+          {permissions.manage_users && (
+            <Link asChild>
+              <NavLink to="/users">Usuários</NavLink>
+            </Link>
+          )}
+          <UserMenu />
+        </HStack>
+      </HStack>
+    </nav>
+  );
 };
-
-const NavBar = ({ title, children }: PropsWithChildren<NavBarProps>) => (
-  <HStack px="4" py="2" borderBottomWidth="1px" borderColor="gray.200">
-    {title && <Heading>Agenda</Heading>}
-    <HStack flex="1" justifyContent="flex-end" alignItems="center" gap="4">
-      {children}
-      <UserMenu />
-    </HStack>
-  </HStack>
-);
 
 export default NavBar;

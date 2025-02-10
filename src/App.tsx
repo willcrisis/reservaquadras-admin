@@ -1,7 +1,7 @@
 import { Toaster } from '@/components/ui/toaster';
 import { useAuth } from '@/hooks/useAuth';
 import AuthProvider from '@/providers/AuthProvider';
-import Home from '@/routes';
+import Router from '@/routes';
 import Login from '@/routes/login';
 
 function RoutedApp() {
@@ -14,7 +14,7 @@ function RoutedApp() {
   return (
     <>
       <Toaster />
-      {user ? <Home /> : <Login />}
+      {user ? <Router /> : <Login />}
     </>
   );
 }

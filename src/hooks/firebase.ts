@@ -23,7 +23,7 @@ export const useDocumentRealtimeData = <T>(root: string, ...paths: string[]) => 
     return () => unsubscribe();
   }, [root, paths]);
 
-  return { data, loading, error };
+  return [data, { loading, error }] as [T, { loading: boolean; error: Error | null }];
 };
 
 export const useCollectionRealtimeData = <T>(root: string) => {
@@ -36,7 +36,7 @@ export const useCollectionRealtimeData = <T>(root: string) => {
     const unsubscribe = onSnapshot(
       collectionRef,
       (snapshot) => {
-        setData(snapshot.docs.map((doc) => doc.data() as T));
+        setData(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as T));
         setLoading(false);
       },
       (error) => {
@@ -47,5 +47,5 @@ export const useCollectionRealtimeData = <T>(root: string) => {
     return () => unsubscribe();
   }, [root]);
 
-  return { data, loading, error };
+  return [data, { loading, error }] as [T[], { loading: boolean; error: Error | null }];
 };
