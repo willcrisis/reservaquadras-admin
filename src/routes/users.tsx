@@ -1,8 +1,9 @@
 import CreateUserDrawer from '@/components/users/CreateUserDrawer';
+import UpdateUserDrawer from '@/components/users/UpdateUserDrawer';
 import { useAuth } from '@/hooks/useAuth';
 import { useGlobalStore } from '@/hooks/useGlobalStore';
 import { Flex, Text, Table, IconButton, HStack } from '@chakra-ui/react';
-import { LuPencil, LuTrash } from 'react-icons/lu';
+import { LuTrash } from 'react-icons/lu';
 import { useNavigate } from 'react-router';
 
 const Users = () => {
@@ -54,9 +55,7 @@ const Users = () => {
               </Table.Cell>
               <Table.Cell>{item.roles?.map((role) => roles.find((r) => r.id === role)?.name).join(', ')}</Table.Cell>
               <Table.Cell display="flex" gap={2} justifyContent="flex-end">
-                <IconButton aria-label="Editar" variant="outline" size="sm" title="Editar">
-                  <LuPencil />
-                </IconButton>
+                <UpdateUserDrawer user={item} />
                 {item.id !== user?.uid && (
                   <IconButton aria-label="Excluir" variant="outline" size="sm" title="Excluir">
                     <LuTrash />

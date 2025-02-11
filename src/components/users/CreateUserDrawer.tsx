@@ -27,7 +27,7 @@ const CreateUserDrawerInner = ({ store }: { store: UseDialogReturn }) => {
     }
   };
 
-  return <UserDrawer onSubmit={onSubmit} isLoading={isLoading} />;
+  return <UserDrawer onSubmit={onSubmit} isLoading={isLoading} title="Adicionar Usuário" />;
 };
 
 const CreateUserDrawer = () => (

@@ -1,5 +1,5 @@
 import { SelectContent, SelectItem, SelectRoot, SelectTrigger, SelectValueText } from '@/components/ui/select';
-import { createListCollection, Input } from '@chakra-ui/react';
+import { createListCollection } from '@chakra-ui/react';
 import { all } from 'country-codes-list';
 import { useMemo, useState } from 'react';
 import { ControllerRenderProps, FieldValues, Path } from 'react-hook-form';
@@ -44,7 +44,6 @@ const CountryCodeSelect = <T extends FieldValues>({ field, portalRef }: CountryC
         <SelectValueText placeholder="Selecione..." />
       </SelectTrigger>
       <SelectContent portalRef={portalRef}>
-        <Input placeholder="Pesquisar" size="xl" p="2" value={search} onChange={(e) => setSearch(e.target.value)} />
         {options.items.map((country) => (
           <SelectItem key={country.label} item={country}>
             {country.label}
