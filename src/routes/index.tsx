@@ -5,7 +5,7 @@ import Users from '@/routes/users';
 import { Flex } from '@chakra-ui/react';
 import { Route, Routes } from 'react-router';
 
-const Router = () => (
+const RouterComponent = () => (
   <Flex gap={4} direction="column">
     <NavBar />
     <Flex px="4">
@@ -17,4 +17,6 @@ const Router = () => (
   </Flex>
 );
 
-export default withGlobalStore(Router);
+const Router = withGlobalStore(RouterComponent);
+
+export default Router;

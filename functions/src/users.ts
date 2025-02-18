@@ -42,6 +42,15 @@ export const updateUser = onCall(async (request) => {
   return { id };
 });
 
+export const deleteUser = onCall(async (request) => {
+  await checkPermissions(request, ['sudo']);
+
+  const { id } = request.data;
+  await getFirestore().collection('users').doc(id).delete();
+
+  return { id };
+});
+
 export const cleanupDeletedUser = onDocumentDeleted('/users/{userId}', async (event) => {
   log('Deleting user', event.params.userId);
   try {

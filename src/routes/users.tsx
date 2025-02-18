@@ -1,5 +1,9 @@
+import ConfirmationDialog from '@/components/ConfirmationDialog';
+import { toaster } from '@/components/ui/toaster';
 import CreateUserDrawer from '@/components/users/CreateUserDrawer';
 import UpdateUserDrawer from '@/components/users/UpdateUserDrawer';
+import { deleteUser, User } from '@/db/user';
+import { useCollectionRealtimeData } from '@/hooks/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { useGlobalStore } from '@/hooks/useGlobalStore';
 import { Flex, Text, Table, IconButton, HStack } from '@chakra-ui/react';
@@ -8,9 +12,10 @@ import { useNavigate } from 'react-router';
 
 const Users = () => {
   const {
-    users: { list, loading, error },
     roles: { list: roles, loading: loadingRoles, error: errorRoles },
   } = useGlobalStore();
+
+  const [users, { loading: loadingUsers, error: errorUsers }] = useCollectionRealtimeData<User>('users');
 
   const { permissions, user } = useAuth();
   const navigate = useNavigate();
@@ -19,13 +24,27 @@ const Users = () => {
     navigate('/');
   }
 
-  if (loading || loadingRoles) {
+  if (loadingUsers || loadingRoles) {
     return <Text>Carregando...</Text>;
   }
 
-  if (error || errorRoles) {
+  if (errorUsers || errorRoles) {
     return <Text>Ocorreu um erro ao carregar os usuários</Text>;
   }
+
+  const onDeleteUser = async (id: string) => {
+    try {
+      await deleteUser({ id });
+      toaster.success({
+        title: 'Usuário excluído com sucesso',
+      });
+    } catch (error) {
+      toaster.error({
+        title: 'Erro ao excluir usuário',
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
+      });
+    }
+  };
 
   return (
     <Flex gap={4} direction="column" w="100%">
@@ -46,20 +65,30 @@ const Users = () => {
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {list.map((item) => (
+          {users.map((item) => (
             <Table.Row key={item.id}>
               <Table.Cell>{item.name}</Table.Cell>
               <Table.Cell>{item.email}</Table.Cell>
               <Table.Cell>
-                +{item.countryCode} {item.phoneNumber}
+                {item.phoneNumber && (
+                  <>
+                    +{item.countryCode} {item.phoneNumber}
+                  </>
+                )}
               </Table.Cell>
               <Table.Cell>{item.roles?.map((role) => roles.find((r) => r.id === role)?.name).join(', ')}</Table.Cell>
               <Table.Cell display="flex" gap={2} justifyContent="flex-end">
                 <UpdateUserDrawer user={item} />
                 {item.id !== user?.uid && (
-                  <IconButton aria-label="Excluir" variant="outline" size="sm" title="Excluir">
-                    <LuTrash />
-                  </IconButton>
+                  <ConfirmationDialog
+                    title="Excluir usuário"
+                    description={`Tem certeza que deseja excluir o usuário ${item.name}?`}
+                    onConfirm={() => onDeleteUser(item.id)}
+                  >
+                    <IconButton aria-label="Excluir" variant="outline" size="sm" title="Excluir">
+                      <LuTrash />
+                    </IconButton>
+                  </ConfirmationDialog>
                 )}
               </Table.Cell>
             </Table.Row>
