@@ -8,7 +8,9 @@ export const checkPermissions = async (request: CallableRequest, permissions: st
     throw new HttpsError('unauthenticated', 'Não autorizado');
   }
 
-  const user = await getFirestore().collection('users').doc(request.auth.uid).get();
+  const userRef = getFirestore().collection('users').doc(request.auth.uid);
+  const user = await userRef.get();
+
   if (!user.exists) {
     log('User not found in firestore', request.auth.uid);
     throw new HttpsError('unauthenticated', 'Não autorizado');
@@ -18,4 +20,6 @@ export const checkPermissions = async (request: CallableRequest, permissions: st
     log('User does not have permission', request.auth.uid, permissions);
     throw new HttpsError('permission-denied', 'Não autorizado');
   }
+
+  return userRef;
 };

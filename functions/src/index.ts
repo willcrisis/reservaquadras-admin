@@ -8,3 +8,4 @@ getFirestore().settings({
 
 export * from './users';
 export * from './courts';
+export * from './schedules';

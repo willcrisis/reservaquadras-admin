@@ -6,6 +6,7 @@ export const COURTS_COLLECTION = 'courts';
 export interface Court {
   id: string;
   name: string;
+  color: string;
 }
 
 export const createCourt = httpsCallable<Omit<Court, 'id'>, { id: string }>(functions, 'createCourt');
