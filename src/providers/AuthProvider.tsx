@@ -66,6 +66,7 @@ const AuthProvider = ({ children }: PropsWithChildren<unknown>) => {
           setRoles(userRoles);
           setPermissions({
             manage_users: userRoles.includes('sudo'),
+            manage_courts: userRoles.includes('sudo'),
             manage_schedules: ['admin', 'sudo'].some((role) => userRoles.includes(role)),
           } as Permissions);
           setLoading(false);

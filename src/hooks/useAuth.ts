@@ -4,6 +4,7 @@ import { createContext, useContext } from 'react';
 export type Permissions = {
   manage_schedules: boolean;
   manage_users: boolean;
+  manage_courts: boolean;
 };
 
 type AuthContextValue = {

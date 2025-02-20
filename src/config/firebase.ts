@@ -20,7 +20,7 @@ export const firebaseEmailAuthConfig = {
 export const app = initializeApp(firebaseConfig);
 
 export const db = getFirestore(app);
-connectFirestoreEmulator(db, 'localhost', 8080);
+connectFirestoreEmulator(db, 'localhost', 9090);
 
 export const auth = getAuth(app);
 connectAuthEmulator(auth, 'http://localhost:9099');

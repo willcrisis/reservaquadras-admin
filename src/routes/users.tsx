@@ -2,7 +2,7 @@ import ConfirmationDialog from '@/components/ConfirmationDialog';
 import { toaster } from '@/components/ui/toaster';
 import CreateUserDrawer from '@/components/users/CreateUserDrawer';
 import UpdateUserDrawer from '@/components/users/UpdateUserDrawer';
-import { deleteUser, User } from '@/db/user';
+import { deleteUser, User, USERS_COLLECTION } from '@/db/user';
 import { useCollectionRealtimeData } from '@/hooks/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { useGlobalStore } from '@/hooks/useGlobalStore';
@@ -15,7 +15,7 @@ const Users = () => {
     roles: { list: roles, loading: loadingRoles, error: errorRoles },
   } = useGlobalStore();
 
-  const [users, { loading: loadingUsers, error: errorUsers }] = useCollectionRealtimeData<User>('users');
+  const [users, { loading: loadingUsers, error: errorUsers }] = useCollectionRealtimeData<User>(USERS_COLLECTION);
 
   const { permissions, user } = useAuth();
   const navigate = useNavigate();

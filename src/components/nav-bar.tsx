@@ -21,6 +21,11 @@ const NavBar = () => {
               <NavLink to="/users">Usuários</NavLink>
             </Link>
           )}
+          {permissions.manage_users && (
+            <Link asChild>
+              <NavLink to="/courts">Quadras</NavLink>
+            </Link>
+          )}
           <UserMenu />
         </HStack>
       </HStack>

@@ -1,5 +1,6 @@
 import NavBar from '@/components/nav-bar';
 import withGlobalStore from '@/providers/GlobalStore';
+import Courts from '@/routes/courts';
 import Home from '@/routes/home';
 import Users from '@/routes/users';
 import { Flex } from '@chakra-ui/react';
@@ -12,6 +13,7 @@ const RouterComponent = () => (
       <Routes>
         <Route index element={<Home />} />
         <Route path="users" element={<Users />} />
+        <Route path="courts" element={<Courts />} />
       </Routes>
     </Flex>
   </Flex>
