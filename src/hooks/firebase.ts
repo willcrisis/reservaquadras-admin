@@ -1,5 +1,5 @@
 import { db } from '@/config/firebase';
-import { collection, doc, onSnapshot } from 'firebase/firestore';
+import { collection, doc, onSnapshot, query, QueryFieldFilterConstraint } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 
 export const useDocumentRealtimeData = <T>(root: string, ...paths: string[]) => {
@@ -26,13 +26,14 @@ export const useDocumentRealtimeData = <T>(root: string, ...paths: string[]) => 
   return [data, { loading, error }] as [T, { loading: boolean; error: Error | null }];
 };
 
-export const useCollectionRealtimeData = <T>(root: string) => {
+export const useCollectionRealtimeData = <T>(root: string, queries?: QueryFieldFilterConstraint[]) => {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    const collectionRef = collection(db, root);
+    setLoading(true);
+    const collectionRef = queries ? query(collection(db, root), ...queries) : collection(db, root);
     const unsubscribe = onSnapshot(
       collectionRef,
       (snapshot) => {
@@ -40,12 +41,13 @@ export const useCollectionRealtimeData = <T>(root: string) => {
         setLoading(false);
       },
       (error) => {
+        setLoading(false);
         setError(error);
       },
     );
 
     return () => unsubscribe();
-  }, [root]);
+  }, [queries, root]);
 
   return [data, { loading, error }] as [T[], { loading: boolean; error: Error | null }];
 };

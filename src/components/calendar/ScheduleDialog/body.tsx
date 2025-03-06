@@ -1,5 +1,5 @@
 import { Button, CheckboxGroup, Fieldset, HStack, Input, Text } from '@chakra-ui/react';
-import { addMinutes, format, setHours, setMinutes } from 'date-fns';
+import { addMinutes, format } from 'date-fns';
 import { Controller, useController, useForm } from 'react-hook-form';
 
 import { Checkbox } from '@/components/ui/checkbox';
@@ -11,36 +11,32 @@ import { useCollectionRealtimeData } from '@/hooks/firebase';
 import { Court, COURTS_COLLECTION } from '@/db/court';
 import { useMemo } from 'react';
 
-export type SchedulePopoverForm = {
+export type ScheduleDialogForm = {
   startTime: string;
   endTime: string;
   courts: string[];
   type: 'casual' | 'ranking';
 };
 
-type SchedulePopoverBodyProps = {
+type ScheduleDialogBodyProps = {
   date: Date;
-  hour: number;
-  half?: boolean;
-  onSubmit: (data: SchedulePopoverForm) => void;
+  onSubmit: (data: ScheduleDialogForm) => void;
   isLoading?: boolean;
 };
 
-const SchedulePopoverBody = ({ date, hour, half, onSubmit, isLoading }: SchedulePopoverBodyProps) => {
+const ScheduleDialogBody = ({ date, onSubmit, isLoading }: ScheduleDialogBodyProps) => {
   const [courts, { loading }] = useCollectionRealtimeData<Court>(COURTS_COLLECTION);
   const courtOptions = useMemo(() => courts.map(({ id: value, name: label }) => ({ label, value })), [courts]);
-
-  const startHour = setMinutes(setHours(date, hour), half ? 30 : 0);
 
   const {
     register,
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<SchedulePopoverForm>({
+  } = useForm<ScheduleDialogForm>({
     defaultValues: {
-      startTime: format(startHour, 'HH:mm'),
-      endTime: format(addMinutes(startHour, 90), 'HH:mm'),
+      startTime: format(date, 'HH:mm'),
+      endTime: format(addMinutes(date, 90), 'HH:mm'),
       courts: [],
       type: 'ranking',
     },
@@ -115,4 +111,4 @@ const SchedulePopoverBody = ({ date, hour, half, onSubmit, isLoading }: Schedule
   );
 };
 
-export default SchedulePopoverBody;
+export default ScheduleDialogBody;

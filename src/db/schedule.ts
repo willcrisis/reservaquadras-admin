@@ -1,8 +1,11 @@
 import { functions } from '@/config/firebase';
 import { Court } from '@/db/court';
-import { DocumentReference } from 'firebase/firestore';
+import { useCollectionRealtimeData } from '@/hooks/firebase';
+import { DocumentReference, where } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
+import { useMemo } from 'react';
 
+export const SCHEDULES_COLLECTION = 'schedules';
 export interface Schedule {
   id?: string;
   startDate: Date;
@@ -13,8 +16,20 @@ export interface Schedule {
   createdBy: string;
 }
 
-export interface CreateScheduleInput extends Omit<Schedule, 'id' | 'createdAt' | 'createdBy' | 'court'> {
+export const useSchedules = (type: 'ranking' | 'casual', startDate: Date, endDate: Date) => {
+  const queries = useMemo(
+    () => [where('startDate', '>=', startDate.getTime()), where('endDate', '<=', endDate.getTime())],
+    [type, startDate, endDate],
+  );
+
+  return useCollectionRealtimeData<Schedule>(type, queries);
+};
+
+export interface CreateScheduleInput {
   courts: string[];
+  startDate: number;
+  endDate: number;
+  type: 'ranking' | 'casual';
 }
 
 export const createSchedule = httpsCallable<Omit<CreateScheduleInput, 'id'>, { id: string }>(
