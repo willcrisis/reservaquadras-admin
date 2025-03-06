@@ -1,5 +1,6 @@
+import CalendarCell from '@/components/calendar/CalendarCell';
 import CreateScheduleDialog from '@/components/calendar/CreateScheduleDialog';
-import { useSchedules } from '@/db/schedule';
+import { Schedule, useSchedules } from '@/db/schedule';
 import { Button, DialogRoot, HStack, Table, Text, VStack } from '@chakra-ui/react';
 import {
   addWeeks,
@@ -7,9 +8,9 @@ import {
   endOfWeek,
   format,
   isSameDay,
+  isSameHour,
   set,
   setHours,
-  setMinutes,
   startOfDay,
   startOfWeek,
 } from 'date-fns';
@@ -20,12 +21,19 @@ import { LuArrowLeft, LuArrowRight, LuCalendar } from 'react-icons/lu';
 
 const today = startOfDay(new Date());
 
+const filterSchedules = (schedules: Schedule[], date: Date, hour: number) =>
+  schedules.filter((schedule) => {
+    const scheduleDate = new Date(schedule.startDate);
+    const cellDate = setHours(date, hour);
+    return isSameDay(scheduleDate, cellDate) && isSameHour(scheduleDate, cellDate);
+  });
+
 export const Calendar = () => {
   const [offset, setOffset] = useState(0);
 
   const [firstDay, lastDay, days] = useMemo(() => {
-    const startDate = startOfWeek(addWeeks(today, offset));
-    const endDate = endOfWeek(startDate);
+    const startDate = startOfWeek(addWeeks(today, offset), { weekStartsOn: 1 });
+    const endDate = endOfWeek(startDate, { weekStartsOn: 1 });
     const days = eachDayOfInterval({ start: startDate, end: endDate });
 
     return [startDate, endDate, days];
@@ -35,14 +43,22 @@ export const Calendar = () => {
   const toNext = useCallback(() => setOffset((offset) => offset + 1), []);
   const setToday = useCallback(() => setOffset(0), []);
 
-  const [schedules, { loading, error }] = useSchedules('ranking', firstDay, lastDay);
-  console.log(schedules);
+  const [rankings, { loading: loadingRankings, error }] = useSchedules('ranking', firstDay, lastDay);
+  const [casuals, { loading: loadingCasuals, error: errorCasuals }] = useSchedules('casual', firstDay, lastDay);
 
   const [open, setOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  if (error) {
+  const [allDay, setAllDay] = useState(false);
+
+  if (error || errorCasuals) {
     return <Text>Erro ao carregar agendamentos</Text>;
   }
+
+  const onSelectedDate = (date: Date, allDay = false) => {
+    setSelectedDate(date);
+    setAllDay(allDay);
+    setOpen(true);
+  };
 
   return (
     <DialogRoot lazyMount open={open} onOpenChange={(e) => setOpen(e.open)} unmountOnExit>
@@ -66,7 +82,13 @@ export const Calendar = () => {
                   <Button onClick={toNext} size="xs">
                     <LuArrowRight />
                   </Button>
-                  <Button variant="outline" onClick={setToday} title="Ir para Hoje" size="xs" loading={loading}>
+                  <Button
+                    variant="outline"
+                    onClick={setToday}
+                    title="Ir para Hoje"
+                    size="xs"
+                    loading={loadingRankings || loadingCasuals}
+                  >
                     <LuCalendar />
                   </Button>
                 </HStack>
@@ -83,6 +105,7 @@ export const Calendar = () => {
                     w="40px"
                     h="40px"
                     title="Liberar dia inteiro"
+                    onClick={() => onSelectedDate(date, true)}
                   >
                     {format(date, 'dd', { locale: ptBR })}
                   </Button>
@@ -92,7 +115,7 @@ export const Calendar = () => {
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {range(24).map((hour, i) => (
+          {range(24).map((hour) => (
             <Table.Row key={`${firstDay.getTime()}-${hour}`}>
               <Table.Cell key="hour">
                 <Text fontSize="xs">
@@ -100,35 +123,20 @@ export const Calendar = () => {
                 </Text>
               </Table.Cell>
               {days.map((date) => (
-                <Table.Cell key={date.getTime()} borderLeft="1px solid {colors.gray.200}" p={0} position="relative">
-                  <Button
-                    variant="ghost"
-                    w="100%"
-                    size="xs"
-                    title={`${format(date, 'dd/MM/yyyy')} - ${hour}:00`}
-                    onClick={() => {
-                      setSelectedDate(setHours(date, hour));
-                      setOpen(true);
-                    }}
-                  />
-                  <Button
-                    variant="ghost"
-                    w="100%"
-                    size="xs"
-                    title={`${format(date, 'dd/MM/yyyy')} - ${hour}:30`}
-                    onClick={() => {
-                      setSelectedDate(setMinutes(setHours(date, hour), 30));
-                      setOpen(true);
-                    }}
-                  />
-                  {/* {i % 2 === 0 && <Button zIndex={100} position="absolute" top={0} left={0} w="80%" h="150%" />} */}
-                </Table.Cell>
+                <CalendarCell
+                  key={date.getTime()}
+                  date={date}
+                  hour={hour}
+                  onClick={onSelectedDate}
+                  rankings={filterSchedules(rankings, date, hour)}
+                  casuals={filterSchedules(casuals, date, hour)}
+                />
               ))}
             </Table.Row>
           ))}
         </Table.Body>
       </Table.Root>
-      {selectedDate && <CreateScheduleDialog date={selectedDate} onCreated={() => setOpen(false)} />}
+      {selectedDate && <CreateScheduleDialog date={selectedDate} onCreated={() => setOpen(false)} allDay={allDay} />}
     </DialogRoot>
   );
 };

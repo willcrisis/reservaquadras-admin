@@ -33,12 +33,16 @@ export interface CreateScheduleInput {
   type: 'ranking' | 'casual';
 }
 
-export const createSchedule = httpsCallable<Omit<CreateScheduleInput, 'id'>, { id: string }>(
+export type CreateScheduleOutput = { id: string };
+
+export const createSchedule = httpsCallable<Omit<CreateScheduleInput, 'id'>, CreateScheduleOutput>(
   functions,
   'createSchedule',
 );
 
-export const createAllDaySchedule = httpsCallable<Omit<CreateScheduleInput, 'id'>, { id: string }>(
+export type CreateAllDayScheduleOutput = { success: number };
+
+export const createAllDaySchedule = httpsCallable<Omit<CreateScheduleInput, 'id'>, CreateAllDayScheduleOutput>(
   functions,
   'createAllDaySchedule',
 );

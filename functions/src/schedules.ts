@@ -45,8 +45,6 @@ export const createAllDaySchedule = onCall(async (request) => {
   const collection = getFirestore().collection(type);
 
   const range = buildRange(startDate, endDate, interval);
-  console.log('🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴');
-  console.log(range);
 
   const schedules = await Promise.all(courts.map(async (court: string) => {
     const courtRef = getFirestore().collection('courts').doc(court);
