@@ -1,6 +1,7 @@
 import { functions } from '@/config/firebase';
 import { Court } from '@/db/court';
 import { useCollectionRealtimeData } from '@/hooks/firebase';
+import { differenceInMinutes } from 'date-fns';
 import { DocumentReference, where } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { useMemo } from 'react';
@@ -36,3 +37,10 @@ export const createSchedule = httpsCallable<Omit<CreateScheduleInput, 'id'>, { i
   functions,
   'createSchedule',
 );
+
+export const createAllDaySchedule = httpsCallable<Omit<CreateScheduleInput, 'id'>, { id: string }>(
+  functions,
+  'createAllDaySchedule',
+);
+
+export const scheduleDuration = (schedule: Schedule) => differenceInMinutes(schedule.endDate, schedule.startDate);

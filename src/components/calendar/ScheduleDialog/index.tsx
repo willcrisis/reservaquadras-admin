@@ -1,3 +1,4 @@
+import ScheduleAllDayDialogBody from '@/components/calendar/ScheduleDialog/allDay';
 import ScheduleDialogBody, {
   ScheduleDialogForm as SchedulePopoverBodyForm,
 } from '@/components/calendar/ScheduleDialog/body';
@@ -11,10 +12,11 @@ export type ScheduleDialogForm = SchedulePopoverBodyForm;
 type ScheduleDialogProps = {
   date: Date;
   isLoading?: boolean;
+  allDay?: boolean;
   onSubmit: (data: ScheduleDialogForm) => void;
 };
 
-const ScheduleDialog = ({ date, onSubmit, isLoading }: ScheduleDialogProps) => (
+const ScheduleDialog = ({ date, onSubmit, isLoading, allDay }: ScheduleDialogProps) => (
   <DialogContent>
     <DialogHeader>
       <Text fontSize="lg" fontWeight="bold">
@@ -25,7 +27,11 @@ const ScheduleDialog = ({ date, onSubmit, isLoading }: ScheduleDialogProps) => (
     </DialogHeader>
     <DialogBody>
       <DialogCloseTrigger />
-      <ScheduleDialogBody date={date} onSubmit={onSubmit} isLoading={isLoading} />
+      {allDay ? (
+        <ScheduleAllDayDialogBody date={date} onSubmit={onSubmit} isLoading={isLoading} />
+      ) : (
+        <ScheduleDialogBody date={date} onSubmit={onSubmit} isLoading={isLoading} />
+      )}
     </DialogBody>
   </DialogContent>
 );
