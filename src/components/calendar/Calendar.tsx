@@ -150,6 +150,7 @@ export const Calendar = () => {
           schedule={selectedSchedule}
           onUpdated={() => onCloseDialog(false)}
           onDeleted={() => onCloseDialog(false)}
+          onPublished={() => onCloseDialog(false)}
         />
       )}
     </DialogRoot>

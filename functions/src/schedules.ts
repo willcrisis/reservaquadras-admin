@@ -2,6 +2,7 @@ import { HttpsError, onCall } from 'firebase-functions/https';
 import { checkPermissions } from './utils/auth';
 import { DocumentData, FieldPath, getFirestore, QuerySnapshot } from 'firebase-admin/firestore';
 import { buildRange, checkClash } from './utils/schedule';
+import { documentExists } from './utils/document';
 
 type CreateScheduleInput = {
   startDate: Date;
@@ -23,11 +24,7 @@ export const createSchedule = onCall<CreateScheduleInput>(async (request) => {
   const schedules = await Promise.all(
     courts.map(async (court: string) => {
       const courtRef = getFirestore().collection('courts').doc(court);
-
-      const courtDoc = await courtRef.get();
-      if (!courtDoc.exists) {
-        throw new Error('Court not found');
-      }
+      await documentExists(courtRef);
 
       await checkClash(collection, startDate, endDate, courtRef);
 
@@ -64,10 +61,7 @@ export const createAllDaySchedule = onCall<CreateAllDayScheduleInput>(async (req
     courts.map(async (court: string) => {
       const courtRef = getFirestore().collection('courts').doc(court);
 
-      const courtDoc = await courtRef.get();
-      if (!courtDoc.exists) {
-        throw new Error('Court not found');
-      }
+      await documentExists(courtRef);
 
       await checkClash(collection, startDate, endDate, courtRef);
 
@@ -102,14 +96,9 @@ export const updateSchedule = onCall(async (request) => {
 
   const scheduleRef = collection.doc(id);
 
-  const scheduleDoc = await scheduleRef.get();
-  if (!scheduleDoc.exists) {
-    throw new HttpsError('not-found', 'Agendamento não encontrado');
-  }
+  const schedule = await documentExists(scheduleRef);
 
-  const schedule = scheduleDoc.data()!;
-
-  await checkClash(collection, startDate, endDate, schedule!.court, id);
+  await checkClash(collection, startDate, endDate, schedule.court, id);
   
   let usersDoc: QuerySnapshot<DocumentData> | null = null;
   
@@ -152,12 +141,31 @@ export const deleteSchedule = onCall(async (request) => {
 
   const scheduleRef = collection.doc(id);
 
-  const scheduleDoc = await scheduleRef.get();
-  if (!scheduleDoc.exists) {
-    throw new HttpsError('not-found', 'Agendamento não encontrado');
-  }
+  await documentExists(scheduleRef);
 
   await scheduleRef.delete();
+
+  return { id };
+});
+
+export const publishSchedule = onCall(async (request) => {
+  await checkPermissions(request, ['sudo', 'admin']);
+
+  const { id } = request.data;
+  
+  const collection = getFirestore().collection('schedules');
+
+  const scheduleRef = collection.doc(id);
+
+  const schedule = await documentExists(scheduleRef);
+
+  if (schedule.publishedAt) {
+    throw new HttpsError('already-exists', 'Agendamento já publicado');
+  }
+
+  await scheduleRef.update({
+    publishedAt: new Date(),
+  });
 
   return { id };
 });

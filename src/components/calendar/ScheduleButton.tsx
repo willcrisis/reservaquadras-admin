@@ -15,8 +15,6 @@ const top = (schedule: Schedule) => {
 };
 
 const color = (schedule: Schedule) => {
-  const weight = schedule.publishedAt ? 600 : 300;
-
   if (schedule.type === 'ranking') {
     return 'blue';
   }
@@ -46,6 +44,7 @@ const ScheduleButton = ({ schedule, onClick }: ScheduleButtonProps) => {
       borderColor={`${color(schedule)}.700`}
       p={1}
       onClick={() => onClick(schedule)}
+      opacity={schedule.publishedAt ? 1 : 0.5}
     >
       <VStack display="flex" w="100%" h="100%" alignItems="flex-start" justifyContent="flex-start" gap={1}>
         {players.length > 0 && <Text fontSize="small">{players.map((player) => player.name).join(' x ')}</Text>}

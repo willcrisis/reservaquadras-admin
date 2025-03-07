@@ -8,9 +8,10 @@ type EditScheduleDialogProps = {
   schedule: Schedule;
   onUpdated: () => void;
   onDeleted: () => void;
+  onPublished: () => void;
 };
 
-const EditScheduleDialog = ({ schedule, onUpdated, onDeleted }: EditScheduleDialogProps) => {
+const EditScheduleDialog = ({ schedule, onUpdated, onDeleted, onPublished }: EditScheduleDialogProps) => {
   const [isLoading, setLoading] = useState(false);
 
   const onSubmit = async (data: EditScheduleDialogForm) => {
@@ -43,7 +44,13 @@ const EditScheduleDialog = ({ schedule, onUpdated, onDeleted }: EditScheduleDial
   };
 
   return (
-    <EditScheduleDialogWrapper schedule={schedule} onSubmit={onSubmit} isLoading={isLoading} onDeleted={onDeleted} />
+    <EditScheduleDialogWrapper
+      schedule={schedule}
+      onSubmit={onSubmit}
+      isLoading={isLoading}
+      onDeleted={onDeleted}
+      onPublished={onPublished}
+    />
   );
 };
 

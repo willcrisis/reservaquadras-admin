@@ -66,6 +66,8 @@ export const updateSchedule = httpsCallable<UpdateScheduleInput, UpdateScheduleO
 
 export const deleteSchedule = httpsCallable<{ id: string }, { id: string }>(functions, 'deleteSchedule');
 
+export const publishSchedule = httpsCallable<{ id: string }, { id: string }>(functions, 'publishSchedule');
+
 export const scheduleDuration = (schedule: Schedule) =>
   differenceInMinutes(schedule.endDate.toDate(), schedule.startDate.toDate());
 

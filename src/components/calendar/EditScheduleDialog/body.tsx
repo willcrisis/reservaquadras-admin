@@ -6,8 +6,11 @@ import { Field } from '@/components/ui/field';
 import { FormRow } from '@/components/ui/form-row';
 import Form from '@/components/ui/form';
 import { Radio, RadioGroup } from '@/components/ui/radio';
-import { playerType, Schedule } from '@/db/schedule';
+import { playerType, publishSchedule, Schedule } from '@/db/schedule';
 import UserSelect from '@/components/users/UserSelect';
+import { toaster } from '@/components/ui/toaster';
+import { useState } from 'react';
+import ConfirmationDialog from '@/components/ConfirmationDialog';
 
 export type EditScheduleDialogForm = {
   id: string;
@@ -22,6 +25,7 @@ type EditScheduleDialogBodyProps = {
   onSubmit: (data: EditScheduleDialogForm) => void;
   isLoading?: boolean;
   portalRef?: React.RefObject<HTMLDivElement>;
+  onPublished?: () => void;
 };
 
 const validatePlayersAmount = (value: string[], type: Schedule['type']) => {
@@ -34,7 +38,13 @@ const validatePlayersAmount = (value: string[], type: Schedule['type']) => {
   return true;
 };
 
-const EditScheduleDialogBody = ({ schedule, onSubmit, isLoading, portalRef }: EditScheduleDialogBodyProps) => {
+const EditScheduleDialogBody = ({
+  schedule,
+  onSubmit,
+  onPublished,
+  isLoading,
+  portalRef,
+}: EditScheduleDialogBodyProps) => {
   const {
     register,
     handleSubmit,
@@ -49,6 +59,24 @@ const EditScheduleDialogBody = ({ schedule, onSubmit, isLoading, portalRef }: Ed
       users: (schedule.users || []).map((user) => user.id),
     },
   });
+
+  const [isPublishing, setIsPublishing] = useState(false);
+
+  const onPublish = async () => {
+    try {
+      setIsPublishing(true);
+      await publishSchedule({ id: schedule.id! });
+      toaster.success({
+        title: 'Agendamento publicado',
+        description: `ID do agendamento: ${schedule.id}`,
+      });
+      onPublished?.();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsPublishing(false);
+    }
+  };
 
   return (
     <Form onSubmit={handleSubmit(onSubmit)}>
@@ -103,6 +131,19 @@ const EditScheduleDialogBody = ({ schedule, onSubmit, isLoading, portalRef }: Ed
           Salvar
         </Button>
       </FormRow>
+      {!schedule.publishedAt && (
+        <FormRow justifyContent="center">
+          <ConfirmationDialog
+            title="Publicar agendamento"
+            description="Tem certeza que deseja publicar este agendamento?"
+            onConfirm={onPublish}
+          >
+            <Button type="button" w="100%" loading={isPublishing} disabled={isPublishing} colorPalette="green">
+              Publicar
+            </Button>
+          </ConfirmationDialog>
+        </FormRow>
+      )}
     </Form>
   );
 };

@@ -5,6 +5,7 @@ import ConfirmationDialog from '@/components/ConfirmationDialog';
 import { DialogBody, DialogCloseTrigger, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { toaster } from '@/components/ui/toaster';
 import { deleteSchedule, Schedule } from '@/db/schedule';
+import { useGlobalStore } from '@/hooks/useGlobalStore';
 import { HStack, IconButton, Text } from '@chakra-ui/react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -18,10 +19,20 @@ type EditScheduleDialogProps = {
   isLoading?: boolean;
   onSubmit: (data: EditScheduleDialogForm) => void;
   onDeleted?: () => void;
+  onPublished?: () => void;
 };
 
-const EditScheduleDialogWrapper = ({ schedule, onSubmit, onDeleted, isLoading }: EditScheduleDialogProps) => {
+const EditScheduleDialogWrapper = ({
+  schedule,
+  onSubmit,
+  onDeleted,
+  onPublished,
+  isLoading,
+}: EditScheduleDialogProps) => {
   const contentRef = useRef<HTMLDivElement>(null);
+  const {
+    courts: { list: courts },
+  } = useGlobalStore();
 
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -48,7 +59,8 @@ const EditScheduleDialogWrapper = ({ schedule, onSubmit, onDeleted, isLoading }:
           <Text fontSize="lg" fontWeight="bold">
             {format(schedule.startDate.toDate(), "dd 'de' MMMM 'de' yyyy", {
               locale: ptBR,
-            })}
+            })}{' '}
+            - {courts.find((court) => court.id === schedule.court.id)?.name}
           </Text>
           <ConfirmationDialog
             title="Excluir agendamento"
@@ -71,7 +83,13 @@ const EditScheduleDialogWrapper = ({ schedule, onSubmit, onDeleted, isLoading }:
         </HStack>
       </DialogHeader>
       <DialogBody>
-        <EditScheduleDialogBody schedule={schedule} onSubmit={onSubmit} isLoading={isLoading} portalRef={contentRef} />
+        <EditScheduleDialogBody
+          schedule={schedule}
+          onSubmit={onSubmit}
+          isLoading={isLoading}
+          portalRef={contentRef}
+          onPublished={onPublished}
+        />
       </DialogBody>
     </DialogContent>
   );
