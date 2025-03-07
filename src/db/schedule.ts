@@ -66,3 +66,6 @@ export const court = async (schedule: Schedule) => {
   const doc = await getDoc(schedule.court);
   return doc.data()?.name;
 };
+
+export const typeName = ({ type }: Schedule) => (type === 'casual' ? 'Bate-bola' : type);
+export const playerType = ({ type }: Schedule) => (type === 'casual' ? 'player' : type);

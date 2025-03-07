@@ -2,15 +2,17 @@ import ConfirmationDialog from '@/components/ConfirmationDialog';
 import CreateCourtDrawer from '@/components/courts/CreateCourtDrawer';
 import UpdateCourtDrawer from '@/components/courts/UpdateCourtDrawer';
 import { toaster } from '@/components/ui/toaster';
-import { Court, COURTS_COLLECTION, deleteCourt } from '@/db/court';
-import { useCollectionRealtimeData } from '@/hooks/firebase';
+import { deleteCourt } from '@/db/court';
 import { useAuth } from '@/hooks/useAuth';
+import { useGlobalStore } from '@/hooks/useGlobalStore';
 import { Flex, Text, Table, IconButton, HStack } from '@chakra-ui/react';
 import { LuTrash } from 'react-icons/lu';
 import { useNavigate } from 'react-router';
 
 const Courts = () => {
-  const [courts, { loading, error }] = useCollectionRealtimeData<Court>(COURTS_COLLECTION);
+  const {
+    courts: { list: courts, loading, error },
+  } = useGlobalStore();
 
   const { permissions } = useAuth();
   const navigate = useNavigate();

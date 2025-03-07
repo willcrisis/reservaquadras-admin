@@ -2,8 +2,7 @@ import ConfirmationDialog from '@/components/ConfirmationDialog';
 import { toaster } from '@/components/ui/toaster';
 import CreateUserDrawer from '@/components/users/CreateUserDrawer';
 import UpdateUserDrawer from '@/components/users/UpdateUserDrawer';
-import { deleteUser, User, USERS_COLLECTION } from '@/db/user';
-import { useCollectionRealtimeData } from '@/hooks/firebase';
+import { deleteUser } from '@/db/user';
 import { useAuth } from '@/hooks/useAuth';
 import { useGlobalStore } from '@/hooks/useGlobalStore';
 import { Flex, Text, Table, IconButton, HStack } from '@chakra-ui/react';
@@ -13,9 +12,8 @@ import { useNavigate } from 'react-router';
 const Users = () => {
   const {
     roles: { list: roles, loading: loadingRoles, error: errorRoles },
+    users: { list: users, loading: loadingUsers, error: errorUsers },
   } = useGlobalStore();
-
-  const [users, { loading: loadingUsers, error: errorUsers }] = useCollectionRealtimeData<User>(USERS_COLLECTION);
 
   const { permissions, user } = useAuth();
   const navigate = useNavigate();

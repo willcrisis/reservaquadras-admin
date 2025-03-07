@@ -1,5 +1,12 @@
 import { db } from '@/config/firebase';
-import { collection, doc, onSnapshot, query, QueryFieldFilterConstraint } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  onSnapshot,
+  query,
+  QueryFieldFilterConstraint,
+  QueryOrderByConstraint,
+} from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 
 export const useDocumentRealtimeData = <T>(root: string, ...paths: string[]) => {
@@ -26,7 +33,10 @@ export const useDocumentRealtimeData = <T>(root: string, ...paths: string[]) => 
   return [data, { loading, error }] as [T, { loading: boolean; error: Error | null }];
 };
 
-export const useCollectionRealtimeData = <T>(root: string, queries?: QueryFieldFilterConstraint[]) => {
+export const useCollectionRealtimeData = <T>(
+  root: string,
+  queries?: (QueryFieldFilterConstraint | QueryOrderByConstraint)[],
+) => {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);

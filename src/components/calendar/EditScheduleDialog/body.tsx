@@ -6,7 +6,7 @@ import { Field } from '@/components/ui/field';
 import { FormRow } from '@/components/ui/form-row';
 import Form from '@/components/ui/form';
 import { Radio, RadioGroup } from '@/components/ui/radio';
-import { Schedule } from '@/db/schedule';
+import { playerType, Schedule } from '@/db/schedule';
 import UserSelect from '@/components/users/UserSelect';
 
 export type EditScheduleDialogForm = {
@@ -22,6 +22,16 @@ type EditScheduleDialogBodyProps = {
   onSubmit: (data: EditScheduleDialogForm) => void;
   isLoading?: boolean;
   portalRef?: React.RefObject<HTMLDivElement>;
+};
+
+const validatePlayersAmount = (value: string[], type: Schedule['type']) => {
+  if (type === 'ranking' && value.length && value.length !== 2) {
+    return 'Ranking deve ter 2 jogadores';
+  }
+  if (type === 'casual' && value.length && value.length !== 1) {
+    return 'Bate-bola deve ter 1 jogador';
+  }
+  return true;
 };
 
 const EditScheduleDialogBody = ({ schedule, onSubmit, isLoading, portalRef }: EditScheduleDialogBodyProps) => {
@@ -73,16 +83,16 @@ const EditScheduleDialogBody = ({ schedule, onSubmit, isLoading, portalRef }: Ed
           <Controller
             control={control}
             name="users"
-            rules={{ validate: (value) => (value.length > 2 ? 'Máximo de 2 jogadores' : true) }}
+            rules={{ validate: (value) => validatePlayersAmount(value, schedule.type) }}
             render={({ field }) => (
               <UserSelect
                 name={field.name}
                 value={field.value}
                 onValueChange={(ev) => field.onChange(ev.value)}
-                placeholder="Selecione os jogadores"
-                type={[schedule.type === 'casual' ? 'player' : schedule.type]}
+                placeholder="Jogadores"
+                type={[playerType(schedule)]}
                 portalRef={portalRef}
-                multiple
+                multiple={schedule.type !== 'casual'}
               />
             )}
           />
