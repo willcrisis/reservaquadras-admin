@@ -1,4 +1,6 @@
-import ScheduleAllDayDialogBody from '@/components/calendar/ScheduleDialog/allDay';
+import ScheduleAllDayDialogBody, {
+  ScheduleAllDayDialogForm as ScheduleAllDayDialogBodyForm,
+} from '@/components/calendar/ScheduleDialog/allDay';
 import ScheduleDialogBody, {
   ScheduleDialogForm as SchedulePopoverBodyForm,
 } from '@/components/calendar/ScheduleDialog/body';
@@ -8,12 +10,13 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export type ScheduleDialogForm = SchedulePopoverBodyForm;
+export type ScheduleAllDayDialogForm = ScheduleAllDayDialogBodyForm;
 
 type ScheduleDialogProps = {
   date: Date;
   isLoading?: boolean;
   allDay?: boolean;
-  onSubmit: (data: ScheduleDialogForm) => void;
+  onSubmit: (data: ScheduleDialogForm | ScheduleAllDayDialogForm) => void;
 };
 
 const ScheduleDialog = ({ date, onSubmit, isLoading, allDay }: ScheduleDialogProps) => (

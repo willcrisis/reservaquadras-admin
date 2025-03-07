@@ -1,45 +1,42 @@
-import { Button, CheckboxGroup, Fieldset, HStack, Input } from '@chakra-ui/react';
-import { addMinutes, format } from 'date-fns';
+import { Button, Fieldset, HStack, Input } from '@chakra-ui/react';
+import { format } from 'date-fns';
 import { Controller, useForm } from 'react-hook-form';
 
-import { Checkbox } from '@/components/ui/checkbox';
 import { Field } from '@/components/ui/field';
 import { FormRow } from '@/components/ui/form-row';
 import Form from '@/components/ui/form';
 import { Radio, RadioGroup } from '@/components/ui/radio';
-import { useMemo } from 'react';
-import { useGlobalStore } from '@/hooks/useGlobalStore';
+import { Schedule } from '@/db/schedule';
+import UserSelect from '@/components/users/UserSelect';
 
-export type ScheduleDialogForm = {
+export type EditScheduleDialogForm = {
+  id: string;
   startTime: string;
   endTime: string;
-  courts: string[];
-  type: 'casual' | 'ranking';
+  type: 'ranking' | 'casual';
+  users: string[];
 };
 
-type ScheduleDialogBodyProps = {
-  date: Date;
-  onSubmit: (data: ScheduleDialogForm) => void;
+type EditScheduleDialogBodyProps = {
+  schedule: Schedule;
+  onSubmit: (data: EditScheduleDialogForm) => void;
   isLoading?: boolean;
+  portalRef?: React.RefObject<HTMLDivElement>;
 };
 
-const ScheduleDialogBody = ({ date, onSubmit, isLoading }: ScheduleDialogBodyProps) => {
-  const {
-    courts: { list: courts },
-  } = useGlobalStore();
-  const courtOptions = useMemo(() => courts.map(({ id: value, name: label }) => ({ label, value })), [courts]);
-
+const EditScheduleDialogBody = ({ schedule, onSubmit, isLoading, portalRef }: EditScheduleDialogBodyProps) => {
   const {
     register,
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<ScheduleDialogForm>({
+  } = useForm<EditScheduleDialogForm>({
     defaultValues: {
-      startTime: format(date, 'HH:mm'),
-      endTime: format(addMinutes(date, 90), 'HH:mm'),
-      courts: [],
-      type: 'ranking',
+      id: schedule.id,
+      startTime: format(schedule.startDate, 'HH:mm'),
+      endTime: format(schedule.endDate, 'HH:mm'),
+      type: schedule.type,
+      users: (schedule.users || []).map((user) => user.id),
     },
   });
 
@@ -72,27 +69,24 @@ const ScheduleDialogBody = ({ date, onSubmit, isLoading }: ScheduleDialogBodyPro
         </Field>
       </FormRow>
       <FormRow>
-        <Fieldset.Root invalid={!!errors.courts}>
-          <Fieldset.Legend>Quadras</Fieldset.Legend>
+        <Field label="Jogadores" invalid={!!errors.users} errorText={errors.users?.message}>
           <Controller
             control={control}
-            name="courts"
-            rules={{ required: 'Selecione pelo menos uma quadra' }}
-            defaultValue={[]}
+            name="users"
+            rules={{ validate: (value) => (value.length > 2 ? 'Máximo de 2 jogadores' : true) }}
             render={({ field }) => (
-              <CheckboxGroup value={field.value} onValueChange={field.onChange} name={field.name}>
-                <Fieldset.Content>
-                  {courtOptions.map((c) => (
-                    <Checkbox key={c.value} value={c.value}>
-                      {c.label}
-                    </Checkbox>
-                  ))}
-                </Fieldset.Content>
-              </CheckboxGroup>
+              <UserSelect
+                name={field.name}
+                value={field.value}
+                onValueChange={(ev) => field.onChange(ev.value)}
+                placeholder="Selecione os jogadores"
+                type={[schedule.type === 'casual' ? 'player' : schedule.type]}
+                portalRef={portalRef}
+                multiple
+              />
             )}
           />
-          {errors.courts && <Fieldset.ErrorText>{errors.courts.message}</Fieldset.ErrorText>}
-        </Fieldset.Root>
+        </Field>
       </FormRow>
       <FormRow justifyContent="center">
         <Button type="submit" w="100%" loading={isLoading} disabled={isLoading}>
@@ -103,4 +97,4 @@ const ScheduleDialogBody = ({ date, onSubmit, isLoading }: ScheduleDialogBodyPro
   );
 };
 
-export default ScheduleDialogBody;
+export default EditScheduleDialogBody;

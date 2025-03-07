@@ -1,4 +1,4 @@
-import { Button, CheckboxGroup, Fieldset, HStack, Input, Text } from '@chakra-ui/react';
+import { Button, CheckboxGroup, Fieldset, HStack, Input } from '@chakra-ui/react';
 import { format, setHours } from 'date-fns';
 import { Controller, useController, useForm } from 'react-hook-form';
 
@@ -7,11 +7,10 @@ import { Field } from '@/components/ui/field';
 import { FormRow } from '@/components/ui/form-row';
 import Form from '@/components/ui/form';
 import { Radio, RadioGroup } from '@/components/ui/radio';
-import { useCollectionRealtimeData } from '@/hooks/firebase';
-import { Court, COURTS_COLLECTION } from '@/db/court';
 import { useMemo } from 'react';
+import { useGlobalStore } from '@/hooks/useGlobalStore';
 
-export type ScheduleDialogForm = {
+export type ScheduleAllDayDialogForm = {
   startTime: string;
   endTime: string;
   courts: string[];
@@ -21,12 +20,15 @@ export type ScheduleDialogForm = {
 
 type ScheduleAllDayDialogBodyProps = {
   date: Date;
-  onSubmit: (data: ScheduleDialogForm) => void;
+  onSubmit: (data: ScheduleAllDayDialogForm) => void;
   isLoading?: boolean;
 };
 
 const ScheduleAllDayDialogBody = ({ date, onSubmit, isLoading }: ScheduleAllDayDialogBodyProps) => {
-  const [courts, { loading }] = useCollectionRealtimeData<Court>(COURTS_COLLECTION);
+  const {
+    courts: { list: courts },
+  } = useGlobalStore();
+
   const courtOptions = useMemo(() => courts.map(({ id: value, name: label }) => ({ label, value })), [courts]);
 
   const {
@@ -34,7 +36,7 @@ const ScheduleAllDayDialogBody = ({ date, onSubmit, isLoading }: ScheduleAllDayD
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<ScheduleDialogForm>({
+  } = useForm<ScheduleAllDayDialogForm>({
     defaultValues: {
       startTime: format(setHours(date, 9), 'HH:mm'),
       endTime: format(setHours(date, 17), 'HH:mm'),
@@ -52,10 +54,6 @@ const ScheduleAllDayDialogBody = ({ date, onSubmit, isLoading }: ScheduleAllDayD
       required: 'Selecione pelo menos uma quadra',
     },
   });
-
-  if (loading) {
-    return <Text>Carregando...</Text>;
-  }
 
   return (
     <Form onSubmit={handleSubmit(onSubmit)}>

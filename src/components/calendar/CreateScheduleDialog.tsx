@@ -1,6 +1,6 @@
-import ScheduleDialog, { ScheduleDialogForm } from '@/components/calendar/ScheduleDialog';
+import ScheduleDialog, { ScheduleAllDayDialogForm, ScheduleDialogForm } from '@/components/calendar/ScheduleDialog';
 import { toaster } from '@/components/ui/toaster';
-import { createAllDaySchedule, CreateAllDayScheduleOutput, createSchedule, CreateScheduleOutput } from '@/db/schedule';
+import { createAllDaySchedule, createSchedule } from '@/db/schedule';
 import { set, startOfDay } from 'date-fns';
 import { useState } from 'react';
 
@@ -13,13 +13,14 @@ type CreateScheduleDialogProps = {
 const CreateScheduleDialog = ({ date, allDay, onCreated }: CreateScheduleDialogProps) => {
   const [isLoading, setLoading] = useState(false);
 
-  const onSubmit = async (data: ScheduleDialogForm) => {
+  const onSubmit = async (data: ScheduleDialogForm | ScheduleAllDayDialogForm) => {
     const create = allDay ? createAllDaySchedule : createSchedule;
     try {
       setLoading(true);
       const [startHour, startMinute] = data.startTime.split(':').map(Number);
       const [endHour, endMinute] = data.endTime.split(':').map(Number);
 
+      // @ts-expect-error type mix happens here
       const { data: result } = await create({
         ...data,
         startDate: set(startOfDay(date), { hours: startHour, minutes: startMinute }).getTime(),
@@ -28,9 +29,7 @@ const CreateScheduleDialog = ({ date, allDay, onCreated }: CreateScheduleDialogP
 
       toaster.success({
         title: 'Agendamento criado',
-        description: allDay
-          ? `Agendamentos criados: ${(result as CreateAllDayScheduleOutput).success}`
-          : `ID do agendamento: ${(result as CreateScheduleOutput).id}`,
+        description: `Quantidade de quadras liberadas: ${result.success}`,
       });
 
       onCreated();

@@ -6,12 +6,12 @@ import { format, setMinutes, setHours } from 'date-fns';
 type CalendarCellProps = {
   date: Date;
   hour: number;
-  rankings: Schedule[];
-  casuals: Schedule[];
+  schedules: Schedule[];
   onClick: (date: Date) => void;
+  onEdit: (schedule: Schedule) => void;
 };
 
-const CalendarCell = ({ date, hour, rankings, casuals, onClick }: CalendarCellProps) => (
+const CalendarCell = ({ date, hour, schedules, onClick, onEdit }: CalendarCellProps) => (
   <Table.Cell key={date.getTime()} borderLeft="1px solid {colors.gray.200}" p={0} position="relative">
     <Button
       variant="ghost"
@@ -27,13 +27,10 @@ const CalendarCell = ({ date, hour, rankings, casuals, onClick }: CalendarCellPr
       title={`${format(date, 'dd/MM/yyyy')} - ${hour}:30`}
       onClick={() => onClick(setMinutes(setHours(date, hour), 30))}
     />
-    {(rankings.length > 0 || casuals.length > 0) && (
+    {schedules.length > 0 && (
       <HStack w="80%" h="100%" position="absolute" top={0} left={0} alignItems="flex-start" gap={0}>
-        {rankings.map((schedule) => (
-          <ScheduleButton key={schedule.id} schedule={schedule} color="blue" />
-        ))}
-        {casuals.map((schedule) => (
-          <ScheduleButton key={schedule.id} schedule={schedule} color="green" />
+        {schedules.map((schedule) => (
+          <ScheduleButton key={schedule.id} schedule={schedule} onClick={onEdit} />
         ))}
       </HStack>
     )}

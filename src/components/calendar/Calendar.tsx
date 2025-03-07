@@ -1,5 +1,6 @@
 import CalendarCell from '@/components/calendar/CalendarCell';
 import CreateScheduleDialog from '@/components/calendar/CreateScheduleDialog';
+import EditScheduleDialog from '@/components/calendar/EditScheduleDialog';
 import { Schedule, useSchedules } from '@/db/schedule';
 import { Button, DialogRoot, HStack, Table, Text, VStack } from '@chakra-ui/react';
 import {
@@ -43,25 +44,36 @@ export const Calendar = () => {
   const toNext = useCallback(() => setOffset((offset) => offset + 1), []);
   const setToday = useCallback(() => setOffset(0), []);
 
-  const [rankings, { loading: loadingRankings, error }] = useSchedules('ranking', firstDay, lastDay);
-  const [casuals, { loading: loadingCasuals, error: errorCasuals }] = useSchedules('casual', firstDay, lastDay);
+  const [schedules, { loading, error }] = useSchedules(firstDay, lastDay);
 
   const [open, setOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
   const [allDay, setAllDay] = useState(false);
 
-  if (error || errorCasuals) {
+  if (error) {
     return <Text>Erro ao carregar agendamentos</Text>;
   }
 
-  const onSelectedDate = (date: Date, allDay = false) => {
+  const onCreateSchedule = (date: Date, allDay = false) => {
     setSelectedDate(date);
     setAllDay(allDay);
     setOpen(true);
   };
 
+  const onCloseDialog = (open: boolean) => {
+    setSelectedDate(null);
+    setSelectedSchedule(null);
+    setOpen(open);
+  };
+
+  const onEditSchedule = (schedule: Schedule) => {
+    setSelectedSchedule(schedule);
+    setOpen(true);
+  };
+
   return (
-    <DialogRoot lazyMount open={open} onOpenChange={(e) => setOpen(e.open)} unmountOnExit>
+    <DialogRoot lazyMount open={open} onOpenChange={(e) => onCloseDialog(e.open)} unmountOnExit>
       <Table.Root>
         <Table.Header position="sticky" top={0} bg="white" zIndex="sticky">
           <Table.Row>
@@ -82,13 +94,7 @@ export const Calendar = () => {
                   <Button onClick={toNext} size="xs">
                     <LuArrowRight />
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={setToday}
-                    title="Ir para Hoje"
-                    size="xs"
-                    loading={loadingRankings || loadingCasuals}
-                  >
+                  <Button variant="outline" onClick={setToday} title="Ir para Hoje" size="xs" loading={loading}>
                     <LuCalendar />
                   </Button>
                 </HStack>
@@ -105,7 +111,7 @@ export const Calendar = () => {
                     w="40px"
                     h="40px"
                     title="Liberar dia inteiro"
-                    onClick={() => onSelectedDate(date, true)}
+                    onClick={() => onCreateSchedule(date, true)}
                   >
                     {format(date, 'dd', { locale: ptBR })}
                   </Button>
@@ -127,9 +133,9 @@ export const Calendar = () => {
                   key={date.getTime()}
                   date={date}
                   hour={hour}
-                  onClick={onSelectedDate}
-                  rankings={filterSchedules(rankings, date, hour)}
-                  casuals={filterSchedules(casuals, date, hour)}
+                  onClick={onCreateSchedule}
+                  onEdit={onEditSchedule}
+                  schedules={filterSchedules(schedules, date, hour)}
                 />
               ))}
             </Table.Row>
@@ -137,6 +143,7 @@ export const Calendar = () => {
         </Table.Body>
       </Table.Root>
       {selectedDate && <CreateScheduleDialog date={selectedDate} onCreated={() => setOpen(false)} allDay={allDay} />}
+      {selectedSchedule && <EditScheduleDialog schedule={selectedSchedule} onUpdated={() => setOpen(false)} />}
     </DialogRoot>
   );
 };
