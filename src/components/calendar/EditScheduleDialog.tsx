@@ -7,9 +7,10 @@ import { useState } from 'react';
 type EditScheduleDialogProps = {
   schedule: Schedule;
   onUpdated: () => void;
+  onDeleted: () => void;
 };
 
-const EditScheduleDialog = ({ schedule, onUpdated }: EditScheduleDialogProps) => {
+const EditScheduleDialog = ({ schedule, onUpdated, onDeleted }: EditScheduleDialogProps) => {
   const [isLoading, setLoading] = useState(false);
 
   const onSubmit = async (data: EditScheduleDialogForm) => {
@@ -20,8 +21,8 @@ const EditScheduleDialog = ({ schedule, onUpdated }: EditScheduleDialogProps) =>
 
       const { data: result } = await updateSchedule({
         ...data,
-        startDate: set(startOfDay(schedule.startDate), { hours: startHour, minutes: startMinute }).getTime(),
-        endDate: set(startOfDay(schedule.endDate), { hours: endHour, minutes: endMinute }).getTime(),
+        startDate: set(startOfDay(schedule.startDate.toDate()), { hours: startHour, minutes: startMinute }).getTime(),
+        endDate: set(startOfDay(schedule.endDate.toDate()), { hours: endHour, minutes: endMinute }).getTime(),
       });
 
       toaster.success({
@@ -41,7 +42,9 @@ const EditScheduleDialog = ({ schedule, onUpdated }: EditScheduleDialogProps) =>
     }
   };
 
-  return <EditScheduleDialogWrapper schedule={schedule} onSubmit={onSubmit} isLoading={isLoading} />;
+  return (
+    <EditScheduleDialogWrapper schedule={schedule} onSubmit={onSubmit} isLoading={isLoading} onDeleted={onDeleted} />
+  );
 };
 
 export default EditScheduleDialog;

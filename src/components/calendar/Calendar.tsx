@@ -24,7 +24,7 @@ const today = startOfDay(new Date());
 
 const filterSchedules = (schedules: Schedule[], date: Date, hour: number) =>
   schedules.filter((schedule) => {
-    const scheduleDate = new Date(schedule.startDate);
+    const scheduleDate = new Date(schedule.startDate.toDate());
     const cellDate = setHours(date, hour);
     return isSameDay(scheduleDate, cellDate) && isSameHour(scheduleDate, cellDate);
   });
@@ -142,8 +142,16 @@ export const Calendar = () => {
           ))}
         </Table.Body>
       </Table.Root>
-      {selectedDate && <CreateScheduleDialog date={selectedDate} onCreated={() => setOpen(false)} allDay={allDay} />}
-      {selectedSchedule && <EditScheduleDialog schedule={selectedSchedule} onUpdated={() => setOpen(false)} />}
+      {selectedDate && (
+        <CreateScheduleDialog date={selectedDate} onCreated={() => onCloseDialog(false)} allDay={allDay} />
+      )}
+      {selectedSchedule && (
+        <EditScheduleDialog
+          schedule={selectedSchedule}
+          onUpdated={() => onCloseDialog(false)}
+          onDeleted={() => onCloseDialog(false)}
+        />
+      )}
     </DialogRoot>
   );
 };

@@ -10,7 +10,7 @@ const height = (schedule: Schedule) => {
 };
 
 const top = (schedule: Schedule) => {
-  const minutes = getMinutes(schedule.startDate);
+  const minutes = getMinutes(schedule.startDate.toDate());
   return `${minutes > 0 ? 50 : 0}%`;
 };
 

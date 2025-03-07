@@ -3,26 +3,30 @@ import { Court } from '@/db/court';
 import { User } from '@/db/user';
 import { useCollectionRealtimeData } from '@/hooks/firebase';
 import { differenceInMinutes } from 'date-fns';
-import { DocumentReference, getDoc, where } from 'firebase/firestore';
+import { DocumentReference, getDoc, orderBy, Timestamp, where } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { useMemo } from 'react';
 
 export const SCHEDULES_COLLECTION = 'schedules';
 export interface Schedule {
   id?: string;
-  startDate: Date;
-  endDate: Date;
-  publishedAt: Date;
+  startDate: Timestamp;
+  endDate: Timestamp;
+  publishedAt: Timestamp;
   court: DocumentReference<Court>;
   type: 'ranking' | 'casual';
   users: DocumentReference<User>[];
-  createdAt: Date;
+  createdAt: Timestamp;
   createdBy: string;
 }
 
 export const useSchedules = (startDate: Date, endDate: Date) => {
   const queries = useMemo(
-    () => [where('startDate', '>=', startDate.getTime()), where('endDate', '<=', endDate.getTime())],
+    () => [
+      where('startDateTime', '>=', startDate.getTime()),
+      where('endDateTime', '<=', endDate.getTime()),
+      orderBy('startDateTime'),
+    ],
     [startDate, endDate],
   );
 
@@ -31,8 +35,8 @@ export const useSchedules = (startDate: Date, endDate: Date) => {
 
 export interface CreateScheduleInput {
   courts: string[];
-  startDate: number;
-  endDate: number;
+  startDate: Date;
+  endDate: Date;
   type: 'ranking' | 'casual';
 }
 
@@ -60,7 +64,10 @@ export type UpdateScheduleOutput = { id: string };
 
 export const updateSchedule = httpsCallable<UpdateScheduleInput, UpdateScheduleOutput>(functions, 'updateSchedule');
 
-export const scheduleDuration = (schedule: Schedule) => differenceInMinutes(schedule.endDate, schedule.startDate);
+export const deleteSchedule = httpsCallable<{ id: string }, { id: string }>(functions, 'deleteSchedule');
+
+export const scheduleDuration = (schedule: Schedule) =>
+  differenceInMinutes(schedule.endDate.toDate(), schedule.startDate.toDate());
 
 export const court = async (schedule: Schedule) => {
   const doc = await getDoc(schedule.court);

@@ -3,10 +3,20 @@ import { checkPermissions } from './utils/auth';
 import { DocumentData, FieldPath, getFirestore, QuerySnapshot } from 'firebase-admin/firestore';
 import { buildRange, checkClash } from './utils/schedule';
 
-export const createSchedule = onCall(async (request) => {
+type CreateScheduleInput = {
+  startDate: Date;
+  endDate: Date;
+  courts: string[];
+  type: 'ranking' | 'casual';
+};
+
+export const createSchedule = onCall<CreateScheduleInput>(async (request) => {
   const userRef = await checkPermissions(request, ['sudo', 'admin']);
 
-  const { startDate, endDate, courts, type } = request.data;
+  let { startDate, endDate, courts, type } = request.data;
+
+  startDate = new Date(startDate);
+  endDate = new Date(endDate);
 
   const collection = getFirestore().collection('schedules');
 
@@ -24,6 +34,8 @@ export const createSchedule = onCall(async (request) => {
       await collection.add({
         startDate,
         endDate,
+        startDateTime: startDate.getTime(),
+        endDateTime: endDate.getTime(),
         court: courtRef,
         type,
         createdBy: userRef,
@@ -35,10 +47,14 @@ export const createSchedule = onCall(async (request) => {
   return { success: schedules.length };
 });
 
-export const createAllDaySchedule = onCall(async (request) => {
+type CreateAllDayScheduleInput = CreateScheduleInput & { interval: number };
+
+export const createAllDaySchedule = onCall<CreateAllDayScheduleInput>(async (request) => {
   const userRef = await checkPermissions(request, ['sudo', 'admin']);
 
-  const { startDate, endDate, courts, type, interval } = request.data;
+  let { startDate, endDate, courts, type, interval } = request.data;
+  startDate = new Date(startDate);
+  endDate = new Date(endDate);
 
   const collection = getFirestore().collection('schedules');
 
@@ -58,8 +74,10 @@ export const createAllDaySchedule = onCall(async (request) => {
       await Promise.all(
         range.map(async (range) => {
           await collection.add({
-            startDate: range.start.getTime(),
-            endDate: range.end.getTime(),
+            startDate: range.start,
+            endDate: range.end,
+            startDateTime: range.start.getTime(),
+            endDateTime: range.end.getTime(),
             type,
             court: courtRef,
             createdBy: userRef,
@@ -76,8 +94,9 @@ export const createAllDaySchedule = onCall(async (request) => {
 export const updateSchedule = onCall(async (request) => {
   const userRef = await checkPermissions(request, ['sudo', 'admin']);
 
-  const { id, startDate, endDate, type, users } = request.data;
-  console.log('id', id);
+  let { id, startDate, endDate, type, users } = request.data;
+  startDate = new Date(startDate);
+  endDate = new Date(endDate);
 
   const collection = getFirestore().collection('schedules');
 
@@ -120,6 +139,25 @@ export const updateSchedule = onCall(async (request) => {
     updatedBy: userRef,
     updatedAt: new Date(),
   });
+
+  return { id };
+});
+
+export const deleteSchedule = onCall(async (request) => {
+  await checkPermissions(request, ['sudo', 'admin']);
+
+  const { id } = request.data;
+
+  const collection = getFirestore().collection('schedules');
+
+  const scheduleRef = collection.doc(id);
+
+  const scheduleDoc = await scheduleRef.get();
+  if (!scheduleDoc.exists) {
+    throw new HttpsError('not-found', 'Agendamento não encontrado');
+  }
+
+  await scheduleRef.delete();
 
   return { id };
 });

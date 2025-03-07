@@ -23,8 +23,8 @@ const CreateScheduleDialog = ({ date, allDay, onCreated }: CreateScheduleDialogP
       // @ts-expect-error type mix happens here
       const { data: result } = await create({
         ...data,
-        startDate: set(startOfDay(date), { hours: startHour, minutes: startMinute }).getTime(),
-        endDate: set(startOfDay(date), { hours: endHour, minutes: endMinute }).getTime(),
+        startDate: set(startOfDay(date), { hours: startHour, minutes: startMinute }),
+        endDate: set(startOfDay(date), { hours: endHour, minutes: endMinute }),
       });
 
       toaster.success({

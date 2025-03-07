@@ -4,7 +4,7 @@ import { DocumentReference, CollectionReference, FieldPath } from 'firebase-admi
 
 export const buildRange = (startDate: Date, endDate: Date, interval: number) => {
   const range = [];
-  let currentDate = new Date(startDate);
+  let currentDate = startDate;
   while (currentDate <= endDate) {
     const end = addMinutes(currentDate, interval);
     range.push({ start: currentDate, end });
@@ -21,8 +21,8 @@ export const checkClash = async (
   id?: string,
 ) => {
   let query = collection
-    .where('startDate', '>=', startDate)
-    .where('endDate', '<=', endDate)
+    .where('startDateTime', '>=', startDate.getTime())
+    .where('endDateTime', '<=', endDate.getTime())
     .where('court', '==', courtRef);
 
     

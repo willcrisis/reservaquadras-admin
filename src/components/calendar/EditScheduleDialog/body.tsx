@@ -43,8 +43,8 @@ const EditScheduleDialogBody = ({ schedule, onSubmit, isLoading, portalRef }: Ed
   } = useForm<EditScheduleDialogForm>({
     defaultValues: {
       id: schedule.id,
-      startTime: format(schedule.startDate, 'HH:mm'),
-      endTime: format(schedule.endDate, 'HH:mm'),
+      startTime: format(schedule.startDate.toDate(), 'HH:mm'),
+      endTime: format(schedule.endDate.toDate(), 'HH:mm'),
       type: schedule.type,
       users: (schedule.users || []).map((user) => user.id),
     },
