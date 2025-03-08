@@ -10,6 +10,7 @@ import { Court } from '@/db/court';
 export type CourtFormData = {
   id?: string;
   name: string;
+  color: string;
 };
 
 export interface CourtDrawerBodyProps {
