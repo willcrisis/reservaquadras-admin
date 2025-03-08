@@ -9,25 +9,40 @@ import {
   DialogActionTrigger,
 } from '@/components/ui/dialog';
 
-import { Button } from '@chakra-ui/react';
+import { Button, DialogContext } from '@chakra-ui/react';
 import { PropsWithChildren } from 'react';
 
 type ConfirmationDialogProps = {
   title: string;
   description?: string;
-  onConfirm?: () => void;
+  triggerAsChild?: boolean;
+  onConfirm?: () => Promise<void>;
   onCancel?: () => void;
 };
 
-const ConfirmationDialog = ({
+const ConfirmationDialogBody = ({
   title,
-  children,
   description,
-  onConfirm,
+  store,
   onCancel,
-}: PropsWithChildren<ConfirmationDialogProps>) => (
-  <DialogRoot>
-    <DialogTrigger asChild>{children || <Button>{title}</Button>}</DialogTrigger>
+  onConfirm,
+}: ConfirmationDialogProps & {
+  store: {
+    setOpen: (open: boolean) => void;
+  };
+}) => {
+  const handleConfirm = async () => {
+    try {
+      if (onConfirm) {
+        await onConfirm();
+      }
+      store.setOpen(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  return (
     <DialogContent>
       <DialogHeader>
         <DialogTitle>{title}</DialogTitle>
@@ -39,9 +54,33 @@ const ConfirmationDialog = ({
             Cancelar
           </Button>
         </DialogActionTrigger>
-        <Button onClick={onConfirm}>Confirmar</Button>
+        <Button onClick={handleConfirm}>Confirmar</Button>
       </DialogFooter>
     </DialogContent>
+  );
+};
+
+const ConfirmationDialog = ({
+  title,
+  children,
+  description,
+  triggerAsChild = true,
+  onConfirm,
+  onCancel,
+}: PropsWithChildren<ConfirmationDialogProps>) => (
+  <DialogRoot>
+    <DialogTrigger asChild={triggerAsChild}>{children || <Button>{title}</Button>}</DialogTrigger>
+    <DialogContext>
+      {(store) => (
+        <ConfirmationDialogBody
+          title={title}
+          description={description}
+          onCancel={onCancel}
+          onConfirm={onConfirm}
+          store={store}
+        />
+      )}
+    </DialogContext>
   </DialogRoot>
 );
 

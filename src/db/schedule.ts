@@ -68,6 +68,11 @@ export const deleteSchedule = httpsCallable<{ id: string }, { id: string }>(func
 
 export const publishSchedule = httpsCallable<{ id: string }, { id: string }>(functions, 'publishSchedule');
 
+export const publishAll = httpsCallable<{ startDate: number; endDate: number }, { success: number }>(
+  functions,
+  'publishAll',
+);
+
 export const scheduleDuration = (schedule: Schedule) =>
   differenceInMinutes(schedule.endDate.toDate(), schedule.startDate.toDate());
 

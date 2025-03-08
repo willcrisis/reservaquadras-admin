@@ -37,6 +37,7 @@ export const createSchedule = onCall<CreateScheduleInput>(async (request) => {
         type,
         createdBy: userRef,
         createdAt: new Date(),
+        publishedAt: null,
       });
     }),
   );
@@ -76,6 +77,7 @@ export const createAllDaySchedule = onCall<CreateAllDayScheduleInput>(async (req
             court: courtRef,
             createdBy: userRef,
             createdAt: new Date(),
+            publishedAt: null,
           });
         }),
       );
@@ -99,9 +101,10 @@ export const updateSchedule = onCall(async (request) => {
   const schedule = await documentExists(scheduleRef);
 
   await checkClash(collection, startDate, endDate, schedule.court, id);
-  
+
   let usersDoc: QuerySnapshot<DocumentData> | null = null;
-  
+  let publishedAt = schedule.publishedAt;
+
   if (users?.length) {
     if (schedule.type === 'ranking' && users.length !== 2) {
       throw new HttpsError('invalid-argument', 'Ranking deve ter 2 jogadores');
@@ -116,15 +119,19 @@ export const updateSchedule = onCall(async (request) => {
     if (usersDoc.size !== users.length) {
       throw new HttpsError('not-found', 'Alguns usuários não foram encontrados');
     }
+
+    publishedAt = new Date();
   } else if (schedule.users?.length) {
     usersDoc = { docs: [] } as unknown as QuerySnapshot<DocumentData>;
+    publishedAt = null;
   }
 
   await scheduleRef.update({
     startDate,
     endDate,
     type,
-    ...(usersDoc ? { users: usersDoc.docs.map((doc) => doc.ref)} : {}),
+    publishedAt,
+    ...(usersDoc ? { users: usersDoc.docs.map((doc) => doc.ref) } : {}),
     updatedBy: userRef,
     updatedAt: new Date(),
   });
@@ -152,7 +159,7 @@ export const publishSchedule = onCall(async (request) => {
   await checkPermissions(request, ['sudo', 'admin']);
 
   const { id } = request.data;
-  
+
   const collection = getFirestore().collection('schedules');
 
   const scheduleRef = collection.doc(id);
@@ -163,9 +170,44 @@ export const publishSchedule = onCall(async (request) => {
     throw new HttpsError('already-exists', 'Agendamento já publicado');
   }
 
+  if (!schedule.users?.length) {
+    // TODO: notify users
+  }
+
   await scheduleRef.update({
     publishedAt: new Date(),
   });
 
   return { id };
+});
+
+export const publishAll = onCall(async (request) => {
+  await checkPermissions(request, ['sudo', 'admin']);
+
+  let { startDate, endDate } = request.data;
+  startDate = new Date(startDate);
+  endDate = new Date(endDate);
+
+  const collection = getFirestore().collection('schedules');
+
+  const schedules = await collection
+    .where('startDateTime', '>=', startDate.getTime())
+    .where('endDateTime', '<=', endDate.getTime())
+    .where('publishedAt', '==', null)
+    .get();
+
+  console.log('AAAAAAAAAAAAAAAAA');
+  console.log(schedules.docs.length);
+
+  await Promise.all(
+    schedules.docs.map(async (schedule) => {
+      await schedule.ref.update({
+        publishedAt: new Date(),
+      });
+    }),
+  );
+
+  // TODO: notify users
+
+  return { success: schedules.size };
 });

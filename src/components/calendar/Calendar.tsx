@@ -1,7 +1,10 @@
 import CalendarCell from '@/components/calendar/CalendarCell';
 import CreateScheduleDialog from '@/components/calendar/CreateScheduleDialog';
 import EditScheduleDialog from '@/components/calendar/EditScheduleDialog';
-import { Schedule, useSchedules } from '@/db/schedule';
+import ConfirmationDialog from '@/components/ConfirmationDialog';
+import { toaster } from '@/components/ui/toaster';
+import { Tooltip } from '@/components/ui/tooltip';
+import { publishAll, Schedule, useSchedules } from '@/db/schedule';
 import { Button, DialogRoot, HStack, Table, Text, VStack } from '@chakra-ui/react';
 import {
   addWeeks,
@@ -16,6 +19,7 @@ import {
   startOfWeek,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { FirebaseError } from 'firebase/app';
 import range from 'lodash/range';
 import { useCallback, useMemo, useState } from 'react';
 import { LuArrowLeft, LuArrowRight, LuCalendar } from 'react-icons/lu';
@@ -46,10 +50,13 @@ export const Calendar = () => {
 
   const [schedules, { loading, error }] = useSchedules(firstDay, lastDay);
 
+  const hasUnpublishedSchedules = useMemo(() => schedules.some((schedule) => !schedule.publishedAt), [schedules]);
+
   const [open, setOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
   const [allDay, setAllDay] = useState(false);
+  const [publishing, setPublishing] = useState(false);
 
   if (error) {
     return <Text>Erro ao carregar agendamentos</Text>;
@@ -72,6 +79,24 @@ export const Calendar = () => {
     setOpen(true);
   };
 
+  const onPublishAll = async () => {
+    try {
+      setPublishing(true);
+      const result = await publishAll({ startDate: firstDay.getTime(), endDate: lastDay.getTime() });
+      toaster.success({
+        title: 'Agendamentos publicados',
+        description: `${result.data.success} agendamentos publicados`,
+      });
+    } catch (error) {
+      toaster.error({
+        title: 'Erro ao publicar agendamentos',
+        description: (error as FirebaseError).message,
+      });
+    } finally {
+      setPublishing(false);
+    }
+  };
+
   return (
     <DialogRoot lazyMount open={open} onOpenChange={(e) => onCloseDialog(e.open)} unmountOnExit>
       <Table.Root>
@@ -88,15 +113,42 @@ export const Calendar = () => {
                   }).toUpperCase()}
                 </Text>
                 <HStack>
-                  <Button onClick={toPrev} size="xs">
-                    <LuArrowLeft />
-                  </Button>
-                  <Button onClick={toNext} size="xs">
-                    <LuArrowRight />
-                  </Button>
-                  <Button variant="outline" onClick={setToday} title="Ir para Hoje" size="xs" loading={loading}>
-                    <LuCalendar />
-                  </Button>
+                  <Tooltip content="Semana anterior">
+                    <Button onClick={toPrev} size="xs">
+                      <LuArrowLeft />
+                    </Button>
+                  </Tooltip>
+                  <Tooltip content="Próxima semana">
+                    <Button onClick={toNext} size="xs">
+                      <LuArrowRight />
+                    </Button>
+                  </Tooltip>
+                  <Tooltip content="Ir para Hoje">
+                    <Button variant="outline" onClick={setToday} title="Ir para Hoje" size="xs" loading={loading}>
+                      <LuCalendar />
+                    </Button>
+                  </Tooltip>
+                  {hasUnpublishedSchedules && (
+                    <ConfirmationDialog
+                      title="Publicar agendamentos"
+                      description="Tem certeza que deseja publicar todos os agendamentos desta semana?"
+                      onConfirm={onPublishAll}
+                      triggerAsChild={false}
+                    >
+                      <Tooltip content="Publicar agendamentos">
+                        <Button
+                          size="xs"
+                          colorPalette="red"
+                          title="Publicar agendamentos"
+                          loading={publishing}
+                          disabled={publishing}
+                          animation="bounce"
+                        >
+                          {schedules.filter((schedule) => !schedule.publishedAt).length}
+                        </Button>
+                      </Tooltip>
+                    </ConfirmationDialog>
+                  )}
                 </HStack>
               </VStack>
             </Table.ColumnHeader>
