@@ -18,7 +18,8 @@ jobs:
         uses: actions/setup-node@v4
 
       - name: Install dependencies
-        uses: bahmutov/npm-install@v1
+        shell: bash
+        run: npm ci
 
       - name: Build project
         run: npm run build
@@ -79,8 +80,9 @@ jobs:
           echo "${{ secrets.GOOGLE_SERVICE_ACCOUNT }}" | base64 --decode > service_account_credentials.json
 
       - name: Install dependencies
+        shell: bash
         working-directory: functions
-        uses: bahmutov/npm-install@v1
+        run: npm ci
 
       - name: Deploy functions
         working-directory: functions
