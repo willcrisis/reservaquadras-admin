@@ -58,6 +58,7 @@ jobs:
 
   deploy-functions:
     name: Deploy Functions
+    needs: build
     runs-on: ubuntu-latest
     defaults:
       run:
