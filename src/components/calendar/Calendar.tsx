@@ -21,7 +21,7 @@ import {
 import { ptBR } from 'date-fns/locale';
 import { FirebaseError } from 'firebase/app';
 import range from 'lodash/range';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { LuArrowLeft, LuArrowRight, LuCalendar } from 'react-icons/lu';
 
 const today = startOfDay(new Date());
@@ -58,10 +58,15 @@ export const Calendar = () => {
   const [allDay, setAllDay] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
-  if (error) {
-    console.error(error);
-    return <Text>Erro ao carregar agendamentos</Text>;
-  }
+  useEffect(() => {
+    if (error) {
+      console.error(error);
+      toaster.error({
+        title: 'Erro ao carregar agendamentos',
+        description: (error as FirebaseError).message,
+      });
+    }
+  }, [error]);
 
   const onCreateSchedule = (date: Date, allDay = false) => {
     setSelectedDate(date);
