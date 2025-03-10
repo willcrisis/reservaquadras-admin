@@ -10,7 +10,7 @@ const UserMenu = () => {
       <MenuTrigger>
         <Avatar name={user!.displayName!} src={user!.photoURL!} />
       </MenuTrigger>
-      <MenuContent>
+      <MenuContent zIndex={1100}>
         <MenuItem value="logout" onClick={logout}>
           Sair
         </MenuItem>
