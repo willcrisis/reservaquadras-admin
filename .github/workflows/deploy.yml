@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./functions
+        working-directory: functions
     env:
       GOOGLE_APPLICATION_CREDENTIALS: service_account_credentials.json
     steps:
