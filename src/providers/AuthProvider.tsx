@@ -11,6 +11,7 @@ import {
 } from 'firebase/auth';
 import { doc, DocumentReference, getDoc } from 'firebase/firestore';
 import { PropsWithChildren, useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router';
 
 const AuthProvider = ({ children }: PropsWithChildren<unknown>) => {
   const [user, setUser] = useState<User | null>(null);
@@ -18,6 +19,7 @@ const AuthProvider = ({ children }: PropsWithChildren<unknown>) => {
   const [permissions, setPermissions] = useState<Permissions>({} as Permissions);
   const [loading, setLoading] = useState(true);
   const [authing, setAuthing] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isSignInWithEmailLink(auth, window.location.href)) {
@@ -26,7 +28,7 @@ const AuthProvider = ({ children }: PropsWithChildren<unknown>) => {
         signInWithEmailLink(auth, email, window.location.href)
           .then(() => {
             window.localStorage.removeItem('emailForSignIn');
-            window.location.href = '/';
+            navigate('/');
           })
           .catch((error) => {
             console.error(error);
