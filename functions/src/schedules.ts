@@ -3,6 +3,7 @@ import {checkPermissions} from "./utils/auth";
 import {DocumentData, FieldPath, getFirestore, QuerySnapshot} from "firebase-admin/firestore";
 import {buildRange, checkClash} from "./utils/schedule";
 import {documentExists} from "./utils/document";
+import {functionSettings} from "./config";
 
 type CreateScheduleInput = {
   startDate: Date;
@@ -11,7 +12,7 @@ type CreateScheduleInput = {
   type: "ranking" | "casual";
 };
 
-export const createSchedule = onCall<CreateScheduleInput>(async (request) => {
+export const createSchedule = onCall<CreateScheduleInput>(functionSettings, async (request) => {
   const userRef = await checkPermissions(request, ["sudo", "admin"]);
 
   let {startDate, endDate} = request.data;
@@ -48,7 +49,7 @@ export const createSchedule = onCall<CreateScheduleInput>(async (request) => {
 
 type CreateAllDayScheduleInput = CreateScheduleInput & { interval: number };
 
-export const createAllDaySchedule = onCall<CreateAllDayScheduleInput>(async (request) => {
+export const createAllDaySchedule = onCall<CreateAllDayScheduleInput>(functionSettings, async (request) => {
   const userRef = await checkPermissions(request, ["sudo", "admin"]);
 
   let {startDate, endDate} = request.data;
@@ -89,7 +90,7 @@ export const createAllDaySchedule = onCall<CreateAllDayScheduleInput>(async (req
   return {success: schedules.length};
 });
 
-export const updateSchedule = onCall(async (request) => {
+export const updateSchedule = onCall(functionSettings, async (request) => {
   const userRef = await checkPermissions(request, ["sudo", "admin"]);
 
   let {startDate, endDate} = request.data;
@@ -142,7 +143,7 @@ export const updateSchedule = onCall(async (request) => {
   return {id};
 });
 
-export const deleteSchedule = onCall(async (request) => {
+export const deleteSchedule = onCall(functionSettings, async (request) => {
   await checkPermissions(request, ["sudo", "admin"]);
 
   const {id} = request.data;
@@ -158,7 +159,7 @@ export const deleteSchedule = onCall(async (request) => {
   return {id};
 });
 
-export const publishSchedule = onCall(async (request) => {
+export const publishSchedule = onCall(functionSettings, async (request) => {
   await checkPermissions(request, ["sudo", "admin"]);
 
   const {id} = request.data;
@@ -184,7 +185,7 @@ export const publishSchedule = onCall(async (request) => {
   return {id};
 });
 
-export const publishAll = onCall(async (request) => {
+export const publishAll = onCall(functionSettings, async (request) => {
   await checkPermissions(request, ["sudo", "admin"]);
 
   let {startDate, endDate} = request.data;

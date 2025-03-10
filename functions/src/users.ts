@@ -4,8 +4,9 @@ import {onDocumentDeleted} from "firebase-functions/firestore";
 import {getFirestore} from "firebase-admin/firestore";
 import {log} from "firebase-functions/logger";
 import {checkPermissions} from "./utils/auth";
+import {functionSettings} from "./config";
 
-export const createUser = onCall(async (request) => {
+export const createUser = onCall(functionSettings, async (request) => {
   await checkPermissions(request, ["sudo"]);
 
   const {name, phoneNumber, email, roles, countryCode} = request.data;
@@ -25,7 +26,7 @@ export const createUser = onCall(async (request) => {
   return {id: newUser.uid};
 });
 
-export const updateUser = onCall(async (request) => {
+export const updateUser = onCall(functionSettings, async (request) => {
   await checkPermissions(request, ["sudo"]);
 
   const {id, ...data} = request.data;
@@ -42,7 +43,7 @@ export const updateUser = onCall(async (request) => {
   return {id};
 });
 
-export const deleteUser = onCall(async (request) => {
+export const deleteUser = onCall(functionSettings, async (request) => {
   await checkPermissions(request, ["sudo"]);
 
   const {id} = request.data;
