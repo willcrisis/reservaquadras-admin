@@ -55,3 +55,28 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
+
+  deploy-functions:
+    name: Deploy Functions
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./functions
+    env:
+      GOOGLE_APPLICATION_CREDENTIALS: service_account_credentials.json
+    steps:
+      - name: Prepare credentials
+        shell: bash
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICE_ACCOUNT }}" | base64 --decode > service_account_credentials.json
+
+      - name: Install dependencies
+        uses: bahmutov/npm-install@v1
+
+      - name: Deploy functions
+        run: npm run deploy
+
+      - name: Remove credentials file
+        if: success() || failure()
+        run: |
+          rm service_account_credentials.json
