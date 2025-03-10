@@ -59,6 +59,7 @@ export const Calendar = () => {
   const [publishing, setPublishing] = useState(false);
 
   if (error) {
+    console.error(error);
     return <Text>Erro ao carregar agendamentos</Text>;
   }
 

@@ -22,6 +22,7 @@ const CreateCourtDrawerInner = ({ store }: { store: UseDialogReturn }) => {
         title: 'Erro ao adicionar quadra',
         description: error instanceof Error ? error.message : 'Erro desconhecido',
       });
+      console.error(error);
     } finally {
       setLoading(false);
     }

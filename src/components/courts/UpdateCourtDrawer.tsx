@@ -23,6 +23,7 @@ const UpdateCourtDrawerInner = ({ store, court }: { store: UseDialogReturn; cour
         title: 'Erro ao atualizar quadra',
         description: error instanceof Error ? error.message : 'Erro desconhecido',
       });
+      console.error(error);
     } finally {
       setLoading(false);
     }
