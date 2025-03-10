@@ -60,24 +60,34 @@ jobs:
     name: Deploy Functions
     needs: build
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: functions
     env:
       GOOGLE_APPLICATION_CREDENTIALS: service_account_credentials.json
+    
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      
       - name: Prepare credentials
         shell: bash
+        working-directory: functions
         run: |
           echo "${{ secrets.GOOGLE_SERVICE_ACCOUNT }}" | base64 --decode > service_account_credentials.json
 
       - name: Install dependencies
+        working-directory: functions
         uses: bahmutov/npm-install@v1
 
       - name: Deploy functions
+        working-directory: functions
         run: npm run deploy
 
       - name: Remove credentials file
         if: success() || failure()
+        working-directory: functions
         run: |
           rm service_account_credentials.json
