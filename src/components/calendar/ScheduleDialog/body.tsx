@@ -9,6 +9,7 @@ import Form from '@/components/ui/form';
 import { Radio, RadioGroup } from '@/components/ui/radio';
 import { useMemo } from 'react';
 import { useGlobalStore } from '@/hooks/useGlobalStore';
+import { Schedule } from '@/db/schedule';
 
 export type ScheduleDialogForm = {
   startTime: string;
@@ -21,9 +22,10 @@ type ScheduleDialogBodyProps = {
   date: Date;
   onSubmit: (data: ScheduleDialogForm) => void;
   isLoading?: boolean;
+  type: Schedule['type'];
 };
 
-const ScheduleDialogBody = ({ date, onSubmit, isLoading }: ScheduleDialogBodyProps) => {
+const ScheduleDialogBody = ({ date, onSubmit, isLoading, type }: ScheduleDialogBodyProps) => {
   const {
     courts: { list: courts },
   } = useGlobalStore();
@@ -39,7 +41,7 @@ const ScheduleDialogBody = ({ date, onSubmit, isLoading }: ScheduleDialogBodyPro
       startTime: format(date, 'HH:mm'),
       endTime: format(addMinutes(date, 90), 'HH:mm'),
       courts: [],
-      type: 'ranking',
+      type,
     },
   });
 
