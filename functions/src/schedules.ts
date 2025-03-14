@@ -1,6 +1,6 @@
 import {HttpsError, onCall} from "firebase-functions/https";
 import {checkPermissions} from "./utils/auth";
-import {DocumentData, FieldPath, getFirestore, QuerySnapshot} from "firebase-admin/firestore";
+import {DocumentData, DocumentReference, FieldPath, getFirestore, QuerySnapshot} from "firebase-admin/firestore";
 import {buildRange, checkClash} from "./utils/schedule";
 import {documentExists} from "./utils/document";
 import {functionSettings} from "./config";
@@ -101,7 +101,6 @@ export const updateSchedule = onCall(functionSettings, async (request) => {
   const collection = getFirestore().collection("schedules");
 
   const scheduleRef = collection.doc(id);
-
   const schedule = await documentExists(scheduleRef);
 
   await checkClash(collection, startDate, endDate, schedule.court, id);
@@ -151,7 +150,6 @@ export const deleteSchedule = onCall(functionSettings, async (request) => {
   const collection = getFirestore().collection("schedules");
 
   const scheduleRef = collection.doc(id);
-
   await documentExists(scheduleRef);
 
   await scheduleRef.delete();
@@ -167,7 +165,6 @@ export const publishSchedule = onCall(functionSettings, async (request) => {
   const collection = getFirestore().collection("schedules");
 
   const scheduleRef = collection.doc(id);
-
   const schedule = await documentExists(scheduleRef);
 
   if (schedule.publishedAt) {
@@ -211,4 +208,84 @@ export const publishAll = onCall(functionSettings, async (request) => {
   // TODO: notify users
 
   return {success: schedules.size};
+});
+
+export const registerViewer = onCall(functionSettings, async (request) => {
+  const userRef = await checkPermissions(request, ["player", "ranking"]);
+
+  const {scheduleId} = request.data;
+
+  const scheduleRef = getFirestore().collection("schedules").doc(scheduleId);
+  const schedule = await documentExists(scheduleRef);
+
+  await scheduleRef.update({
+    viewers: [...(schedule.viewers || []), userRef],
+  });
+
+  return {id: scheduleId};
+});
+
+export const unregisterViewer = onCall(functionSettings, async (request) => {
+  const userRef = await checkPermissions(request, ["player", "ranking"]);
+
+  const {scheduleId} = request.data;
+
+  const scheduleRef = getFirestore().collection("schedules").doc(scheduleId);
+  const schedule = await documentExists(scheduleRef);
+
+  await scheduleRef.update({
+    viewers: schedule.viewers?.filter((viewer: DocumentReference) => viewer.id !== userRef.id),
+  });
+
+  return {id: scheduleId};
+});
+
+export const takeSchedule = onCall(functionSettings, async (request) => {
+  const userRef = await checkPermissions(request, ["player", "ranking"]);
+
+  const {scheduleId, rivalId} = request.data;
+
+  const scheduleRef = getFirestore().collection("schedules").doc(scheduleId);
+  const schedule = await documentExists(scheduleRef);
+
+  if (schedule.users?.length) {
+    throw new HttpsError("already-exists", "Agendamento já reservado");
+  }
+
+  const users = [userRef];
+
+  const rivalRef = getFirestore().collection("users").doc(rivalId);
+  if (rivalId) {
+    await documentExists(rivalRef);
+    users.push(rivalRef);
+  }
+
+  await scheduleRef.update({
+    users,
+    updatedBy: userRef,
+    updatedAt: new Date(),
+  });
+
+  return {id: scheduleId};
+});
+
+export const releaseSchedule = onCall(functionSettings, async (request) => {
+  const userRef = await checkPermissions(request, ["sudo", "admin"]);
+
+  const {scheduleId} = request.data;
+
+  const scheduleRef = getFirestore().collection("schedules").doc(scheduleId);
+  const schedule = await documentExists(scheduleRef);
+
+  if (!schedule.users?.length) {
+    throw new HttpsError("already-exists", "Agendamento não reservado");
+  }
+
+  await scheduleRef.update({
+    users: null,
+    updatedBy: userRef,
+    updatedAt: new Date(),
+  });
+
+  return {id: scheduleId};
 });
