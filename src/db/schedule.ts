@@ -14,6 +14,7 @@ export interface Schedule {
   endDate: Timestamp;
   publishedAt: Timestamp;
   court: DocumentReference<Court>;
+  courtName: string;
   type: 'ranking' | 'casual';
   users: DocumentReference<User>[];
   createdAt: Timestamp;

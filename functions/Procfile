@@ -1,2 +1,3 @@
 watch: npm run build:watch
 emulator: firebase emulators:start --import ./.firebase-data --export-on-exit
+web: cd .. &&npm run dev

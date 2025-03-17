@@ -4,6 +4,7 @@ import {DocumentData, DocumentReference, FieldPath, getFirestore, QuerySnapshot}
 import {buildRange, checkClash} from "./utils/schedule";
 import {documentExists} from "./utils/document";
 import {functionSettings} from "./config";
+import {endOfDay, startOfDay} from "date-fns";
 
 type CreateScheduleInput = {
   startDate: Date;
@@ -26,7 +27,7 @@ export const createSchedule = onCall<CreateScheduleInput>(functionSettings, asyn
   const schedules = await Promise.all(
     courts.map(async (court: string) => {
       const courtRef = getFirestore().collection("courts").doc(court);
-      await documentExists(courtRef);
+      const courtData = await documentExists(courtRef);
 
       await checkClash(collection, startDate, endDate, courtRef);
 
@@ -36,7 +37,9 @@ export const createSchedule = onCall<CreateScheduleInput>(functionSettings, asyn
         startDateTime: startDate.getTime(),
         endDateTime: endDate.getTime(),
         court: courtRef,
+        courtName: courtData.name,
         type,
+        users: [],
         createdBy: userRef,
         createdAt: new Date(),
         publishedAt: null,
@@ -66,6 +69,7 @@ export const createAllDaySchedule = onCall<CreateAllDayScheduleInput>(functionSe
       const courtRef = getFirestore().collection("courts").doc(court);
 
       await documentExists(courtRef);
+      const courtData = await documentExists(courtRef);
 
       await checkClash(collection, startDate, endDate, courtRef);
 
@@ -77,7 +81,9 @@ export const createAllDaySchedule = onCall<CreateAllDayScheduleInput>(functionSe
             startDateTime: range.start.getTime(),
             endDateTime: range.end.getTime(),
             type,
+            users: [],
             court: courtRef,
+            courtName: courtData.name,
             createdBy: userRef,
             createdAt: new Date(),
             publishedAt: null,
@@ -134,7 +140,7 @@ export const updateSchedule = onCall(functionSettings, async (request) => {
     endDate,
     type,
     publishedAt,
-    ...(usersDoc ? {users: usersDoc.docs.map((doc) => doc.ref)} : {}),
+    users: usersDoc ? usersDoc.docs.map((doc) => doc.ref) : [],
     updatedBy: userRef,
     updatedAt: new Date(),
   });
@@ -241,21 +247,38 @@ export const unregisterViewer = onCall(functionSettings, async (request) => {
 });
 
 export const takeSchedule = onCall(functionSettings, async (request) => {
-  const userRef = await checkPermissions(request, ["player", "ranking"]);
-
   const {scheduleId, rivalId} = request.data;
-
   const scheduleRef = getFirestore().collection("schedules").doc(scheduleId);
   const schedule = await documentExists(scheduleRef);
+
+  const role = schedule.type === "casual" ? "player" : "ranking";
+  const userRef = await checkPermissions(request, [role]);
 
   if (schedule.users?.length) {
     throw new HttpsError("already-exists", "Agendamento já reservado");
   }
 
+  if (schedule.type === "ranking" && !rivalId) {
+    throw new HttpsError("invalid-argument", "Ranking deve ter um oponente");
+  }
+
+  const startDate = startOfDay(schedule.startDate.toDate());
+
+  const schedules = await getFirestore()
+    .collection("schedules")
+    .where("startDateTime", ">=", startDate.getTime())
+    .where("startDateTime", "<=", endOfDay(startDate).getTime())
+    .where("users", "array-contains", userRef)
+    .get();
+
+  if (schedules.size > 0) {
+    throw new HttpsError("already-exists", "Você já possui uma reserva nesse dia");
+  }
+
   const users = [userRef];
 
-  const rivalRef = getFirestore().collection("users").doc(rivalId);
   if (rivalId) {
+    const rivalRef = getFirestore().collection("users").doc(rivalId);
     await documentExists(rivalRef);
     users.push(rivalRef);
   }
@@ -270,7 +293,7 @@ export const takeSchedule = onCall(functionSettings, async (request) => {
 });
 
 export const releaseSchedule = onCall(functionSettings, async (request) => {
-  const userRef = await checkPermissions(request, ["sudo", "admin"]);
+  const userRef = await checkPermissions(request, ["player", "ranking"]);
 
   const {scheduleId} = request.data;
 
@@ -282,7 +305,7 @@ export const releaseSchedule = onCall(functionSettings, async (request) => {
   }
 
   await scheduleRef.update({
-    users: null,
+    users: [],
     updatedBy: userRef,
     updatedAt: new Date(),
   });
