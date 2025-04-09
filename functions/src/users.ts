@@ -5,6 +5,8 @@ import {getFirestore} from "firebase-admin/firestore";
 import {log} from "firebase-functions/logger";
 import {checkPermissions} from "./utils/auth";
 import {functionSettings} from "./config";
+import {fakerPT_BR as faker} from "@faker-js/faker";
+
 
 export const createUser = onCall(functionSettings, async (request) => {
   await checkPermissions(request, ["sudo"]);
@@ -59,4 +61,40 @@ export const cleanupDeletedUser = onDocumentDeleted("/users/{userId}", async (ev
   } catch (error) {
     log("Error deleting user", event.params.userId, error);
   }
+});
+
+const flipCoin = () => Math.random() < 0.5;
+
+export const createTestUsers = onCall(functionSettings, async (request) => {
+  await checkPermissions(request, ["sudo"]);
+
+  const {count} = request.data;
+
+  for (let i = 0; i < count; i++) {
+    const roles = flipCoin() ? ["player"] : [];
+
+    if (roles.length === 0 || flipCoin()) {
+      roles.push("ranking");
+    }
+
+    const userName = faker.person.fullName();
+    const photoURL = `https://i.pravatar.cc/300?u=${encodeURIComponent(userName)}`;
+
+    const userData = {
+      name: userName,
+      phoneNumber: faker.string.numeric(9),
+      roles,
+      countryCode: "55",
+      photoURL,
+    };
+    const newUser = await getAuth().createUser({
+      displayName: userData.name,
+      phoneNumber: `+${userData.countryCode}${userData.phoneNumber}`,
+      photoURL,
+    });
+
+    await getFirestore().collection("users").doc(newUser.uid).set(userData);
+  }
+
+  return {success: 100};
 });

@@ -1,11 +1,12 @@
 import ConfirmationDialog from '@/components/ConfirmationDialog';
+import { Avatar } from '@/components/ui/avatar';
 import { toaster } from '@/components/ui/toaster';
 import CreateUserDrawer from '@/components/users/CreateUserDrawer';
 import UpdateUserDrawer from '@/components/users/UpdateUserDrawer';
-import { deleteUser } from '@/db/user';
+import { createTestUsers, deleteUser } from '@/db/user';
 import { useAuth } from '@/hooks/useAuth';
 import { useGlobalStore } from '@/hooks/useGlobalStore';
-import { Flex, Text, Table, IconButton, HStack } from '@chakra-ui/react';
+import { Flex, Text, Table, IconButton, HStack, Button } from '@chakra-ui/react';
 import { LuTrash } from 'react-icons/lu';
 import { useNavigate } from 'react-router';
 
@@ -50,11 +51,17 @@ const Users = () => {
         <Text fontSize="2xl" mb={4}>
           Usuários
         </Text>
-        <CreateUserDrawer />
+        <HStack gap={2}>
+          <CreateUserDrawer />
+          <Button variant="outline" colorScheme="red" onClick={() => createTestUsers({ count: 10 })}>
+            Criar 10 usuários
+          </Button>
+        </HStack>
       </HStack>
       <Table.Root size="sm" variant="outline">
         <Table.Header>
           <Table.Row>
+            <Table.ColumnHeader>Foto</Table.ColumnHeader>
             <Table.ColumnHeader>Nome</Table.ColumnHeader>
             <Table.ColumnHeader>Email</Table.ColumnHeader>
             <Table.ColumnHeader>Telefone</Table.ColumnHeader>
@@ -65,6 +72,9 @@ const Users = () => {
         <Table.Body>
           {users.map((item) => (
             <Table.Row key={item.id}>
+              <Table.Cell>
+                <Avatar src={item.photoURL} />
+              </Table.Cell>
               <Table.Cell>{item.name}</Table.Cell>
               <Table.Cell>{item.email}</Table.Cell>
               <Table.Cell>
